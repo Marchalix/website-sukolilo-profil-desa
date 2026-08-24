@@ -72,6 +72,13 @@ export default function Navbar() {
           >
             Kontak
           </a>
+
+          <a
+            href="/login"
+            className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-800"
+            >
+            Login Admin
+            </a>
         </div>
 
         {/* Mobile Menu */}
@@ -142,6 +149,14 @@ export default function Navbar() {
                 className="rounded-md px-4 py-3 text-sm font-medium text-gray-700 hover:bg-green-50 hover:text-green-700"
             >
                 Kontak
+            </a>
+
+            <a
+            href="/login"
+            onClick={() => setIsOpen(false)}
+            className="mt-2 rounded-md bg-green-700 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-green-800"
+            >
+            Login Admin
             </a>
 
             </div>

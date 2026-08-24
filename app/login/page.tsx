@@ -1,10 +1,13 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
+
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect");
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -37,8 +40,8 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/admin");
-      router.refresh();
+        router.push(redirect || "/admin");
+        router.refresh();
     } catch {
       setError("Terjadi kesalahan. Silakan coba lagi.");
     } finally {

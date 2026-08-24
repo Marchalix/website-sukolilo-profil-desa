@@ -10,8 +10,8 @@ export function middleware(request: NextRequest) {
   // PROTEKSI HALAMAN ADMIN
   // =========================
 
-  if (pathname.startsWith("/admin")) {
-    if (!session) {
+if (pathname.startsWith("/admin")) {
+    if (session !== "authenticated") {
       const loginUrl = new URL("/login", request.url);
 
       loginUrl.searchParams.set(
@@ -47,7 +47,7 @@ export function middleware(request: NextRequest) {
       method === "PATCH" ||
       method === "DELETE";
 
-    if (isMutation && !session) {
+if (isMutation && session !== "authenticated") {
       return NextResponse.json(
         {
           success: false,
