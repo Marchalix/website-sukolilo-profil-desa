@@ -2,6 +2,15 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Clock3,
+  Mail,
+  MapPin,
+  Phone,
+  Save,
+} from "lucide-react";
 
 type Kontak = {
   alamat: string;
@@ -50,12 +59,13 @@ export default function AdminKontakPage() {
             alamat: data.data.alamat || "",
             telepon: data.data.telepon || "",
             email: data.data.email || "",
-            jam_pelayanan: data.data.jam_pelayanan || "",
+            jam_pelayanan:
+              data.data.jam_pelayanan || "",
             latitude:
               data.data.latitude !== null
                 ? Number(data.data.latitude)
                 : null,
-                longitude:
+            longitude:
               data.data.longitude !== null
                 ? Number(data.data.longitude)
                 : null,
@@ -79,14 +89,17 @@ export default function AdminKontakPage() {
   // HANDLE CHANGE
   // =========================
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
 
     setForm((prev) => ({
       ...prev,
       [name]:
-        name === "latitude" || name === "longitude"
+        name === "latitude" ||
+        name === "longitude"
           ? value === ""
             ? null
             : Number(value)
@@ -140,198 +153,343 @@ export default function AdminKontakPage() {
   // =========================
   if (loading) {
     return (
-      <main className="min-h-screen bg-gray-50">
+      <main className="min-h-screen bg-[#f7f8f6]">
         <div className="flex min-h-screen items-center justify-center">
-          <p className="text-sm text-gray-500">
-            Memuat data kontak...
-          </p>
+          <div className="text-center">
+
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-green-700" />
+
+            <p className="mt-4 text-sm text-gray-500">
+              Memuat data kontak...
+            </p>
+
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-[#f7f8f6]">
 
-      {/* HEADER */}
-      <header className="border-b bg-white">
-        <div className="mx-auto max-w-5xl px-6 py-5 lg:px-8">
+      {/* ==================== HEADER ==================== */}
+      <header className="sticky top-0 z-40 border-b border-gray-200/80 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
+
+          <div className="flex items-center gap-3">
+
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-700 text-sm font-bold text-white shadow-sm">
+              DS
+            </div>
+
+            <div>
+              <p className="text-sm font-bold text-gray-900">
+                Desa Sukolilo
+              </p>
+
+              <p className="text-xs text-gray-500">
+                Admin Panel
+              </p>
+            </div>
+
+          </div>
 
           <Link
-            href="/admin"
-            className="text-sm font-medium text-gray-500 hover:text-green-700"
+            href="/kontak"
+            target="_blank"
+            className="hidden items-center gap-2 rounded-lg border border-gray-200 px-3.5 py-2 text-sm font-medium text-gray-600 transition hover:border-green-200 hover:text-green-700 sm:flex"
           >
-            ← Kembali ke Dashboard
+            <MapPin className="h-4 w-4" />
+            Lihat Kontak
           </Link>
-
-          <p className="mt-5 text-sm font-semibold uppercase tracking-[0.15em] text-green-700">
-            Admin Desa Sukolilo
-          </p>
-
-          <h1 className="mt-1 text-2xl font-bold text-gray-900">
-            Kelola Kontak Desa
-          </h1>
-
-          <p className="mt-1 text-sm text-gray-500">
-            Kelola alamat dan informasi kontak Desa Sukolilo.
-          </p>
 
         </div>
       </header>
 
-      {/* FORM */}
-      <section className="mx-auto max-w-5xl px-6 py-10 lg:px-8">
+      {/* ==================== CONTENT ==================== */}
+      <section className="mx-auto max-w-5xl px-6 py-8 lg:px-8">
 
+        {/* BREADCRUMB */}
+        <Link
+          href="/admin"
+          className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-green-700"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Dashboard
+        </Link>
+
+        {/* PAGE HEADER */}
+        <div className="mt-6">
+
+          <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.15em] text-green-700">
+            <MapPin className="h-4 w-4" />
+            Content Management
+          </div>
+
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900">
+            Kontak Desa
+          </h1>
+
+          <p className="mt-2 text-sm leading-6 text-gray-500">
+            Kelola alamat, informasi kontak, jam pelayanan,
+            dan lokasi Kantor Desa Sukolilo.
+          </p>
+
+        </div>
+
+        {/* ==================== FORM ==================== */}
         <form
           onSubmit={handleSubmit}
-          className="rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-100"
+          className="mt-7 space-y-6"
         >
 
+          {/* MESSAGE */}
           {message && (
-            <div className="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+            <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+              <CheckCircle2 className="h-5 w-5 shrink-0" />
               {message}
             </div>
           )}
 
           {error && (
-            <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
               {error}
             </div>
           )}
 
-          {/* ALAMAT */}
-          <div>
-            <label
-              htmlFor="alamat"
-              className="text-sm font-semibold text-gray-900"
-            >
-              Alamat
-            </label>
+          {/* ==================== INFORMASI KONTAK ==================== */}
+          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
 
-            <textarea
-              id="alamat"
-              name="alamat"
-              value={form.alamat}
-              onChange={handleChange}
-              rows={4}
-              required
-              className="mt-2 w-full resize-y rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-600 focus:ring-1 focus:ring-green-600"
-              placeholder="Masukkan alamat Kantor Desa Sukolilo..."
-            />
-          </div>
+            <div className="border-b border-gray-100 px-6 py-5">
 
-          {/* TELEPON & EMAIL */}
-          <div className="mt-6 grid gap-5 sm:grid-cols-2">
+              <div className="flex items-center gap-3">
 
-            <div>
-              <label
-                htmlFor="telepon"
-                className="text-sm font-semibold text-gray-900"
-              >
-                Nomor Telepon
-              </label>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-700">
+                  <Phone className="h-5 w-5" />
+                </div>
 
-              <input
-                id="telepon"
-                name="telepon"
-                type="text"
-                value={form.telepon}
-                onChange={handleChange}
-                required
-                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-600 focus:ring-1 focus:ring-green-600"
-                placeholder="Contoh: 081234567890"
-              />
+                <div>
+                  <h2 className="font-bold text-gray-900">
+                    Informasi Kontak
+                  </h2>
+
+                  <p className="mt-1 text-xs text-gray-500">
+                    Informasi yang dapat digunakan masyarakat
+                    untuk menghubungi desa.
+                  </p>
+                </div>
+
+              </div>
+
             </div>
 
-            <div>
-              <label
-                htmlFor="email"
-                className="text-sm font-semibold text-gray-900"
-              >
-                Email
-              </label>
+            <div className="space-y-6 p-6">
 
-              <input
-                id="email"
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={handleChange}
-                required
-                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-600 focus:ring-1 focus:ring-green-600"
-                placeholder="Contoh: desa@sukolilo.id"
-              />
+              {/* ALAMAT */}
+              <div>
+
+                <label
+                  htmlFor="alamat"
+                  className="flex items-center gap-2 text-sm font-semibold text-gray-900"
+                >
+                  <MapPin className="h-4 w-4 text-green-700" />
+                  Alamat
+                </label>
+
+                <textarea
+                  id="alamat"
+                  name="alamat"
+                  value={form.alamat}
+                  onChange={handleChange}
+                  rows={4}
+                  required
+                  placeholder="Masukkan alamat Kantor Desa Sukolilo..."
+                  className="mt-2 w-full resize-y rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm leading-6 text-gray-900 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
+                />
+
+              </div>
+
+              {/* TELEPON + EMAIL */}
+              <div className="grid gap-5 sm:grid-cols-2">
+
+                <div>
+
+                  <label
+                    htmlFor="telepon"
+                    className="flex items-center gap-2 text-sm font-semibold text-gray-900"
+                  >
+                    <Phone className="h-4 w-4 text-green-700" />
+                    Nomor Telepon
+                  </label>
+
+                  <input
+                    id="telepon"
+                    name="telepon"
+                    type="text"
+                    value={form.telepon}
+                    onChange={handleChange}
+                    required
+                    placeholder="Contoh: 081234567890"
+                    className="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
+                  />
+
+                </div>
+
+                <div>
+
+                  <label
+                    htmlFor="email"
+                    className="flex items-center gap-2 text-sm font-semibold text-gray-900"
+                  >
+                    <Mail className="h-4 w-4 text-green-700" />
+                    Email
+                  </label>
+
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    required
+                    placeholder="Contoh: desa@sukolilo.id"
+                    className="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
+                  />
+
+                </div>
+
+              </div>
+
+              {/* JAM PELAYANAN */}
+              <div>
+
+                <label
+                  htmlFor="jam_pelayanan"
+                  className="flex items-center gap-2 text-sm font-semibold text-gray-900"
+                >
+                  <Clock3 className="h-4 w-4 text-green-700" />
+                  Jam Pelayanan
+                </label>
+
+                <input
+                  id="jam_pelayanan"
+                  name="jam_pelayanan"
+                  type="text"
+                  value={form.jam_pelayanan}
+                  onChange={handleChange}
+                  placeholder="Contoh: Senin - Jumat, 08.00 - 15.00"
+                  className="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
+                />
+
+              </div>
+
             </div>
 
           </div>
 
-          {/* JAM PELAYANAN */}
-          <div className="mt-6">
-            <label
-              htmlFor="jam_pelayanan"
-              className="text-sm font-semibold text-gray-900"
-            >
-              Jam Pelayanan
-            </label>
+          {/* ==================== LOKASI ==================== */}
+          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
 
-            <input
-              id="jam_pelayanan"
-              name="jam_pelayanan"
-              type="text"
-              value={form.jam_pelayanan}
-              onChange={handleChange}
-              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-600 focus:ring-1 focus:ring-green-600"
-              placeholder="Contoh: Senin - Jumat, 08.00 - 15.00"
-            />
-          </div>
+            <div className="border-b border-gray-100 px-6 py-5">
 
-          {/* LATITUDE */}
-          <div className="mt-6">
-            <label
-              htmlFor="latitude"
-              className="text-sm font-semibold text-gray-900"
-            >
-              Latitude
-            </label>
+              <div className="flex items-center gap-3">
 
-            <input
-              id="latitude"
-              name="latitude"
-              type="number"
-              step="0.000001"
-              value={form.latitude ?? ""}
-              onChange={handleChange}
-              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-600 focus:ring-1 focus:ring-green-600"
-              placeholder="Contoh: -7.123456"
-            />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                  <MapPin className="h-5 w-5" />
+                </div>
 
-            <p className="mt-2 text-xs text-gray-500">
-              Kosongkan jika belum memiliki koordinat.
-            </p>
-          </div>
+                <div>
+                  <h2 className="font-bold text-gray-900">
+                    Lokasi Kantor Desa
+                  </h2>
 
-          <div>
-            <label className="text-sm font-medium text-gray-700">
-                Longitude
-            </label>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Masukkan koordinat untuk menentukan lokasi
+                    pada Google Maps.
+                  </p>
+                </div>
 
-            <input
-                type="number"
-                step="any"
-                name="longitude"
-                value={form.longitude ?? ""}
-                onChange={handleChange}
-                placeholder="Contoh: 112.123456"
-                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700"
-            />
+              </div>
+
             </div>
 
-          {/* BUTTON */}
-          <div className="mt-8 flex justify-between border-t border-gray-100 pt-6">
+            <div className="p-6">
+
+              <div className="grid gap-5 sm:grid-cols-2">
+
+                {/* LATITUDE */}
+                <div>
+
+                  <label
+                    htmlFor="latitude"
+                    className="text-sm font-semibold text-gray-900"
+                  >
+                    Latitude
+                  </label>
+
+                  <input
+                    id="latitude"
+                    name="latitude"
+                    type="number"
+                    step="0.0000001"
+                    value={form.latitude ?? ""}
+                    onChange={handleChange}
+                    placeholder="Contoh: -7.1234567"
+                    className="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
+                  />
+
+                  <p className="mt-2 text-xs text-gray-400">
+                    Contoh: -7.1234567
+                  </p>
+
+                </div>
+
+                {/* LONGITUDE */}
+                <div>
+
+                  <label
+                    htmlFor="longitude"
+                    className="text-sm font-semibold text-gray-900"
+                  >
+                    Longitude
+                  </label>
+
+                  <input
+                    id="longitude"
+                    name="longitude"
+                    type="number"
+                    step="0.0000001"
+                    value={form.longitude ?? ""}
+                    onChange={handleChange}
+                    placeholder="Contoh: 112.1234567"
+                    className="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
+                  />
+
+                  <p className="mt-2 text-xs text-gray-400">
+                    Contoh: 112.1234567
+                  </p>
+
+                </div>
+
+              </div>
+
+              {/* INFO */}
+              <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-700">
+                Pastikan latitude dan longitude sesuai dengan
+                lokasi Kantor Desa. Koordinat ini akan digunakan
+                untuk menampilkan lokasi pada Google Maps.
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* ==================== BUTTON ==================== */}
+          <div className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
 
             <Link
               href="/admin"
-              className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+              className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
             >
               Batal
             </Link>
@@ -339,8 +497,9 @@ export default function AdminKontakPage() {
             <button
               type="submit"
               disabled={saving}
-              className="rounded-lg bg-green-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-xl bg-green-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
+              <Save className="h-4 w-4" />
               {saving ? "Menyimpan..." : "Simpan Kontak"}
             </button>
 

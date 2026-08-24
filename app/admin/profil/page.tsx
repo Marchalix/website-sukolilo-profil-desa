@@ -2,6 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  ArrowLeft,
+  BookOpen,
+  CheckCircle2,
+  FileText,
+  Save,
+  Users,
+} from "lucide-react";
 
 type Profil = {
   sejarah: string;
@@ -33,14 +41,10 @@ export default function AdminProfilPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  // =========================
-  // AMBIL DATA PROFIL
-  // =========================
   useEffect(() => {
     const ambilProfil = async () => {
       try {
         const response = await fetch("/api/profil");
-
         const data = await response.json();
 
         if (!response.ok) {
@@ -80,9 +84,6 @@ export default function AdminProfilPage() {
     ambilProfil();
   }, []);
 
-  // =========================
-  // HANDLE CHANGE
-  // =========================
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement
@@ -96,9 +97,6 @@ export default function AdminProfilPage() {
     }));
   };
 
-  // =========================
-  // SIMPAN PROFIL
-  // =========================
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
@@ -137,166 +135,242 @@ export default function AdminProfilPage() {
     }
   };
 
-  // =========================
-  // LOADING
-  // =========================
   if (loading) {
     return (
-      <main className="min-h-screen bg-gray-50">
+      <main className="min-h-screen bg-[#f7f8f6]">
         <div className="flex min-h-screen items-center justify-center">
-          <p className="text-sm text-gray-500">
-            Memuat data profil...
-          </p>
+          <div className="text-center">
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-green-700" />
+            <p className="mt-4 text-sm text-gray-500">
+              Memuat data profil...
+            </p>
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-[#f7f8f6]">
 
-      {/* ==================== HEADER ==================== */}
-      <header className="border-b bg-white">
-        <div className="mx-auto max-w-5xl px-6 py-5 lg:px-8">
+      {/* HEADER */}
+      <header className="sticky top-0 z-40 border-b border-gray-200/80 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
+
+          <div className="flex items-center gap-3">
+
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-700 text-sm font-bold text-white shadow-sm">
+              DS
+            </div>
+
+            <div>
+              <p className="text-sm font-bold text-gray-900">
+                Desa Sukolilo
+              </p>
+
+              <p className="text-xs text-gray-500">
+                Admin Panel
+              </p>
+            </div>
+
+          </div>
 
           <Link
-            href="/admin"
-            className="text-sm font-medium text-gray-500 hover:text-green-700"
+            href="/"
+            target="_blank"
+            className="hidden items-center gap-2 rounded-lg border border-gray-200 px-3.5 py-2 text-sm font-medium text-gray-600 transition hover:border-green-200 hover:text-green-700 sm:flex"
           >
-            ← Kembali ke Dashboard
+            Lihat Website
           </Link>
-
-          <p className="mt-5 text-sm font-semibold uppercase tracking-[0.15em] text-green-700">
-            Admin Desa Sukolilo
-          </p>
-
-          <h1 className="mt-1 text-2xl font-bold text-gray-900">
-            Kelola Profil Desa
-          </h1>
-
-          <p className="mt-1 text-sm text-gray-500">
-            Kelola informasi utama mengenai Desa Sukolilo.
-          </p>
 
         </div>
       </header>
 
-      {/* ==================== FORM ==================== */}
-      <section className="mx-auto max-w-5xl px-6 py-10 lg:px-8">
+      {/* CONTENT */}
+      <section className="mx-auto max-w-5xl px-6 py-8 lg:px-8">
 
+        <Link
+          href="/admin"
+          className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-green-700"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Dashboard
+        </Link>
+
+        {/* PAGE HEADER */}
+        <div className="mt-6">
+
+          <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.15em] text-green-700">
+            <BookOpen className="h-4 w-4" />
+            Content Management
+          </div>
+
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900">
+            Profil Desa
+          </h1>
+
+          <p className="mt-2 text-sm leading-6 text-gray-500">
+            Kelola informasi utama mengenai Desa Sukolilo.
+          </p>
+
+        </div>
+
+        {/* FORM */}
         <form
           onSubmit={handleSubmit}
-          className="rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-100"
+          className="mt-7 space-y-6"
         >
 
-          {/* ==================== PESAN ==================== */}
-
+          {/* MESSAGE */}
           {message && (
-            <div className="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+            <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+              <CheckCircle2 className="h-5 w-5 shrink-0" />
               {message}
             </div>
           )}
 
           {error && (
-            <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
               {error}
             </div>
           )}
 
-          {/* ==================== SEJARAH ==================== */}
+          {/* INFORMASI UTAMA */}
+          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
 
-          <div>
-            <label
-              htmlFor="sejarah"
-              className="text-sm font-semibold text-gray-900"
-            >
-              Sejarah Desa
-            </label>
+            <div className="border-b border-gray-100 px-6 py-5">
+              <div className="flex items-center gap-3">
 
-            <textarea
-              id="sejarah"
-              name="sejarah"
-              value={form.sejarah}
-              onChange={handleChange}
-              rows={7}
-              className="mt-2 w-full resize-y rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-600 focus:ring-1 focus:ring-green-600"
-              placeholder="Masukkan sejarah Desa Sukolilo..."
-            />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-700">
+                  <FileText className="h-5 w-5" />
+                </div>
+
+                <div>
+                  <h2 className="font-bold text-gray-900">
+                    Informasi Utama
+                  </h2>
+
+                  <p className="mt-1 text-xs text-gray-500">
+                    Sejarah, visi, misi, dan kepala desa.
+                  </p>
+                </div>
+
+              </div>
+            </div>
+
+            <div className="space-y-6 p-6">
+
+              {/* SEJARAH */}
+              <div>
+                <label
+                  htmlFor="sejarah"
+                  className="text-sm font-semibold text-gray-900"
+                >
+                  Sejarah Desa
+                </label>
+
+                <textarea
+                  id="sejarah"
+                  name="sejarah"
+                  value={form.sejarah}
+                  onChange={handleChange}
+                  rows={7}
+                  placeholder="Masukkan sejarah Desa Sukolilo..."
+                  className="mt-2 w-full resize-y rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm leading-6 text-gray-900 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
+                />
+              </div>
+
+              {/* VISI */}
+              <div>
+                <label
+                  htmlFor="visi"
+                  className="text-sm font-semibold text-gray-900"
+                >
+                  Visi
+                </label>
+
+                <textarea
+                  id="visi"
+                  name="visi"
+                  value={form.visi}
+                  onChange={handleChange}
+                  rows={4}
+                  placeholder="Masukkan visi desa..."
+                  className="mt-2 w-full resize-y rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm leading-6 text-gray-900 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
+                />
+              </div>
+
+              {/* MISI */}
+              <div>
+                <label
+                  htmlFor="misi"
+                  className="text-sm font-semibold text-gray-900"
+                >
+                  Misi
+                </label>
+
+                <textarea
+                  id="misi"
+                  name="misi"
+                  value={form.misi}
+                  onChange={handleChange}
+                  rows={7}
+                  placeholder="Masukkan misi desa..."
+                  className="mt-2 w-full resize-y rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm leading-6 text-gray-900 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
+                />
+              </div>
+
+              {/* KEPALA DESA */}
+              <div>
+                <label
+                  htmlFor="nama_kepala_desa"
+                  className="text-sm font-semibold text-gray-900"
+                >
+                  Nama Kepala Desa
+                </label>
+
+                <input
+                  id="nama_kepala_desa"
+                  name="nama_kepala_desa"
+                  type="text"
+                  value={form.nama_kepala_desa}
+                  onChange={handleChange}
+                  placeholder="Masukkan nama kepala desa..."
+                  className="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
+                />
+              </div>
+
+            </div>
+
           </div>
 
-          {/* ==================== VISI ==================== */}
+          {/* DATA KEPENDUDUKAN */}
+          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
 
-          <div className="mt-6">
-            <label
-              htmlFor="visi"
-              className="text-sm font-semibold text-gray-900"
-            >
-              Visi
-            </label>
+            <div className="border-b border-gray-100 px-6 py-5">
 
-            <textarea
-              id="visi"
-              name="visi"
-              value={form.visi}
-              onChange={handleChange}
-              rows={4}
-              className="mt-2 w-full resize-y rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-600 focus:ring-1 focus:ring-green-600"
-              placeholder="Masukkan visi desa..."
-            />
-          </div>
+              <div className="flex items-center gap-3">
 
-          {/* ==================== MISI ==================== */}
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                  <Users className="h-5 w-5" />
+                </div>
 
-          <div className="mt-6">
-            <label
-              htmlFor="misi"
-              className="text-sm font-semibold text-gray-900"
-            >
-              Misi
-            </label>
+                <div>
+                  <h2 className="font-bold text-gray-900">
+                    Data Kependudukan
+                  </h2>
 
-            <textarea
-              id="misi"
-              name="misi"
-              value={form.misi}
-              onChange={handleChange}
-              rows={7}
-              className="mt-2 w-full resize-y rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-600 focus:ring-1 focus:ring-green-600"
-              placeholder="Masukkan misi desa..."
-            />
-          </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Masukkan jumlah penduduk dan pembagian wilayah.
+                  </p>
+                </div>
 
-          {/* ==================== KEPALA DESA ==================== */}
+              </div>
 
-          <div className="mt-6">
-            <label
-              htmlFor="nama_kepala_desa"
-              className="text-sm font-semibold text-gray-900"
-            >
-              Nama Kepala Desa
-            </label>
+            </div>
 
-            <input
-              id="nama_kepala_desa"
-              name="nama_kepala_desa"
-              type="text"
-              value={form.nama_kepala_desa}
-              onChange={handleChange}
-              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-600 focus:ring-1 focus:ring-green-600"
-              placeholder="Masukkan nama kepala desa..."
-            />
-          </div>
+            <div className="grid gap-5 p-6 sm:grid-cols-2">
 
-          {/* ==================== DATA PENDUDUK ==================== */}
-
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Data Kependudukan
-            </h2>
-
-            <div className="mt-4 grid gap-5 sm:grid-cols-2">
-
-              {/* Jumlah Penduduk */}
               <div>
                 <label
                   htmlFor="jumlah_penduduk"
@@ -312,11 +386,10 @@ export default function AdminProfilPage() {
                   min="0"
                   value={form.jumlah_penduduk}
                   onChange={handleChange}
-                  className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-600 focus:ring-1 focus:ring-green-600"
+                  className="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
                 />
               </div>
 
-              {/* Jumlah KK */}
               <div>
                 <label
                   htmlFor="jumlah_kk"
@@ -332,11 +405,10 @@ export default function AdminProfilPage() {
                   min="0"
                   value={form.jumlah_kk}
                   onChange={handleChange}
-                  className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-600 focus:ring-1 focus:ring-green-600"
+                  className="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
                 />
               </div>
 
-              {/* Jumlah RT */}
               <div>
                 <label
                   htmlFor="jumlah_rt"
@@ -352,11 +424,10 @@ export default function AdminProfilPage() {
                   min="0"
                   value={form.jumlah_rt}
                   onChange={handleChange}
-                  className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-600 focus:ring-1 focus:ring-green-600"
+                  className="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
                 />
               </div>
 
-              {/* Jumlah RW */}
               <div>
                 <label
                   htmlFor="jumlah_rw"
@@ -372,20 +443,20 @@ export default function AdminProfilPage() {
                   min="0"
                   value={form.jumlah_rw}
                   onChange={handleChange}
-                  className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-600 focus:ring-1 focus:ring-green-600"
+                  className="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
                 />
               </div>
 
             </div>
+
           </div>
 
-          {/* ==================== BUTTON ==================== */}
-
-          <div className="mt-8 flex justify-between border-t border-gray-100 pt-6">
+          {/* BUTTON */}
+          <div className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
 
             <Link
               href="/admin"
-              className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+              className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
             >
               Batal
             </Link>
@@ -393,8 +464,9 @@ export default function AdminProfilPage() {
             <button
               type="submit"
               disabled={saving}
-              className="rounded-lg bg-green-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-xl bg-green-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
+              <Save className="h-4 w-4" />
               {saving ? "Menyimpan..." : "Simpan Profil"}
             </button>
 

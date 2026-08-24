@@ -3,6 +3,17 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  CalendarDays,
+  Eye,
+  FileText,
+  Newspaper,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
 
 type Berita = {
   id: number;
@@ -77,7 +88,6 @@ export default function AdminBeritaPage() {
         );
       }
 
-      // Hapus dari tampilan tanpa reload
       setBerita((prev) =>
         prev.filter((item) => item.id !== id)
       );
@@ -95,102 +105,239 @@ export default function AdminBeritaPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-[#f7f8f6]">
 
       {/* ==================== HEADER ==================== */}
-      <header className="border-b bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-8">
+      <header className="sticky top-0 z-40 border-b border-gray-200/80 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
 
-        <div>
-        <Link
-            href="/admin"
-            className="mb-2 inline-block text-sm font-medium text-gray-500 transition hover:text-green-700"
-        >
-            ← Kembali ke Dashboard
-        </Link>
+          <div className="flex items-center gap-3">
 
-        <p className="text-sm font-semibold uppercase tracking-[0.15em] text-green-700">
-            Admin Desa Sukolilo
-        </p>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-700 text-sm font-bold text-white shadow-sm">
+              DS
+            </div>
 
-        <h1 className="mt-1 text-2xl font-bold text-gray-900">
-            Kelola Berita
-        </h1>
-        </div>
+            <div>
+              <p className="text-sm font-bold text-gray-900">
+                Desa Sukolilo
+              </p>
+
+              <p className="text-xs text-gray-500">
+                Admin Panel
+              </p>
+            </div>
+
+          </div>
 
           <Link
-            href="/berita"
-            className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:border-green-700 hover:text-green-700"
+            href="/"
+            target="_blank"
+            className="hidden items-center gap-2 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-sm font-medium text-gray-600 transition hover:border-green-200 hover:text-green-700 sm:flex"
           >
-            Lihat Website
+            <Eye className="h-4 w-4" />
+            Preview Website
           </Link>
 
         </div>
       </header>
 
       {/* ==================== CONTENT ==================== */}
-      <section className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
+      <section className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
 
-        {/* Heading */}
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        {/* BREADCRUMB */}
+        <Link
+          href="/admin"
+          className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-green-700"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Dashboard
+        </Link>
+
+        {/* PAGE HEADER */}
+        <div className="mt-6 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
 
           <div>
-            <h2 className="text-xl font-bold text-gray-900">
-              Daftar Berita
-            </h2>
 
-            <p className="mt-1 text-sm text-gray-500">
-              Kelola berita yang ditampilkan pada website Desa Sukolilo.
+            <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.15em] text-green-700">
+              <Newspaper className="h-4 w-4" />
+              Content Management
+            </div>
+
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900">
+              Berita Desa
+            </h1>
+
+            <p className="mt-2 max-w-xl text-sm leading-6 text-gray-500">
+              Kelola berita dan artikel yang ditampilkan pada
+              website Desa Sukolilo.
             </p>
+
           </div>
 
           <Link
             href="/admin/berita/tambah"
-            className="inline-flex items-center justify-center rounded-lg bg-green-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-800"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-green-800"
           >
-            + Tambah Berita
+            <Plus className="h-4 w-4" />
+            Tambah Berita
           </Link>
 
         </div>
 
-        {/* ==================== TABLE ==================== */}
-        <div className="mt-8 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
+        {/* ==================== SUMMARY ==================== */}
+        <div className="mt-7 grid gap-4 sm:grid-cols-3">
 
-          {loading ? (
-            <div className="px-6 py-16 text-center">
-              <p className="text-sm text-gray-500">
-                Memuat berita...
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+
+            <div className="flex items-center gap-3">
+
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                <FileText className="h-5 w-5" />
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                  Total Berita
+                </p>
+
+                <p className="mt-1 text-2xl font-bold text-gray-900">
+                  {berita.length}
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+
+            <div className="flex items-center gap-3">
+
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-600">
+                <Eye className="h-5 w-5" />
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                  Published
+                </p>
+
+                <p className="mt-1 text-2xl font-bold text-gray-900">
+                  {
+                    berita.filter(
+                      (item) => item.status === "published"
+                    ).length
+                  }
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+
+            <div className="flex items-center gap-3">
+
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                <CalendarDays className="h-5 w-5" />
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                  Terbaru
+                </p>
+
+                <p className="mt-1 text-sm font-semibold text-gray-900">
+                  {berita.length > 0
+                    ? new Date(
+                        berita[0].tanggal
+                      ).toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })
+                    : "-"}
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* ==================== DATA ==================== */}
+        <div className="mt-7 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+
+          {/* TABLE HEADER */}
+          <div className="flex flex-col justify-between gap-3 border-b border-gray-100 px-6 py-5 sm:flex-row sm:items-center">
+
+            <div>
+              <h2 className="font-bold text-gray-900">
+                Daftar Berita
+              </h2>
+
+              <p className="mt-1 text-xs text-gray-500">
+                Semua berita yang tersimpan dalam sistem.
               </p>
             </div>
-          ) : (
+
+            <div className="rounded-lg bg-gray-50 px-3 py-2 text-xs font-medium text-gray-500">
+              {berita.length} data
+            </div>
+
+          </div>
+
+          {/* LOADING */}
+          {loading && (
+            <div className="flex min-h-[280px] items-center justify-center">
+
+              <div className="text-center">
+
+                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-green-700" />
+
+                <p className="mt-4 text-sm text-gray-500">
+                  Memuat data berita...
+                </p>
+
+              </div>
+
+            </div>
+          )}
+
+          {/* TABLE */}
+          {!loading && berita.length > 0 && (
             <div className="overflow-x-auto">
 
-              <table className="w-full min-w-[900px] text-left">
+              <table className="w-full min-w-[850px]">
 
-                <thead className="border-b bg-gray-50">
+                <thead className="bg-gray-50/80">
+
                   <tr>
 
-                    <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
-                      Judul
+                    <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-gray-400">
+                      Berita
                     </th>
 
-                    <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-gray-400">
                       Kategori
                     </th>
 
-                    <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-gray-400">
                       Tanggal
                     </th>
 
-                    <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-gray-400">
                       Status
                     </th>
 
-                    <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <th className="px-6 py-4 text-right text-[11px] font-bold uppercase tracking-wider text-gray-400">
                       Aksi
                     </th>
 
                   </tr>
+
                 </thead>
 
                 <tbody className="divide-y divide-gray-100">
@@ -198,20 +345,30 @@ export default function AdminBeritaPage() {
                   {berita.map((item) => (
                     <tr
                       key={item.id}
-                      className="transition hover:bg-gray-50"
+                      className="group transition hover:bg-gray-50/70"
                     >
 
-                      {/* JUDUL */}
+                      {/* BERITA */}
                       <td className="px-6 py-5">
 
-                        <div>
-                          <p className="font-semibold text-gray-900">
-                            {item.judul}
-                          </p>
+                        <div className="flex items-start gap-3">
 
-                          <p className="mt-1 text-xs text-gray-400">
-                            /berita/{item.slug}
-                          </p>
+                          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                            <Newspaper className="h-4 w-4" />
+                          </div>
+
+                          <div className="min-w-0">
+
+                            <p className="max-w-md truncate font-semibold text-gray-900">
+                              {item.judul}
+                            </p>
+
+                            <p className="mt-1 max-w-md truncate text-xs text-gray-400">
+                              /berita/{item.slug}
+                            </p>
+
+                          </div>
+
                         </div>
 
                       </td>
@@ -219,22 +376,28 @@ export default function AdminBeritaPage() {
                       {/* KATEGORI */}
                       <td className="px-6 py-5">
 
-                        <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                        <span className="inline-flex rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
                           {item.kategori}
                         </span>
 
                       </td>
 
                       {/* TANGGAL */}
-                      <td className="px-6 py-5 text-sm text-gray-600">
+                      <td className="px-6 py-5">
 
-                        {new Date(
-                          item.tanggal
-                        ).toLocaleDateString("id-ID", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        })}
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+
+                          <CalendarDays className="h-4 w-4 text-gray-400" />
+
+                          {new Date(
+                            item.tanggal
+                          ).toLocaleDateString("id-ID", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+
+                        </div>
 
                       </td>
 
@@ -244,8 +407,8 @@ export default function AdminBeritaPage() {
                         <span
                           className={
                             item.status === "published"
-                              ? "rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700"
-                              : "rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700"
+                              ? "inline-flex rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700"
+                              : "inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700"
                           }
                         >
                           {item.status}
@@ -256,20 +419,22 @@ export default function AdminBeritaPage() {
                       {/* AKSI */}
                       <td className="px-6 py-5">
 
-                        <div className="flex justify-end gap-4">
+                        <div className="flex justify-end gap-2">
 
-                        <Link
-                        href={`/admin/berita/${item.id}/preview`}
-                        className="text-sm font-medium text-gray-600 hover:text-green-700"
-                        >
-                        Lihat
-                        </Link>
+                          <Link
+                            href={`/admin/berita/${item.id}/preview`}
+                            title="Lihat berita"
+                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-green-200 hover:bg-green-50 hover:text-green-700"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Link>
 
                           <Link
                             href={`/admin/berita/${item.id}/edit`}
-                            className="text-sm font-semibold text-green-700 hover:text-green-900"
+                            title="Edit berita"
+                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-green-200 hover:bg-green-50 hover:text-green-700"
                           >
-                            Edit
+                            <Pencil className="h-4 w-4" />
                           </Link>
 
                           <button
@@ -280,11 +445,14 @@ export default function AdminBeritaPage() {
                             disabled={
                               deletingId === item.id
                             }
-                            className="text-sm font-semibold text-red-600 hover:text-red-800 disabled:cursor-not-allowed disabled:opacity-50"
+                            title="Hapus berita"
+                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
                           >
-                            {deletingId === item.id
-                              ? "Menghapus..."
-                              : "Hapus"}
+                            {deletingId === item.id ? (
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-200 border-t-red-500" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
                           </button>
 
                         </div>
@@ -301,20 +469,33 @@ export default function AdminBeritaPage() {
             </div>
           )}
 
-          {/* TIDAK ADA BERITA */}
+          {/* EMPTY STATE */}
           {!loading && berita.length === 0 && (
-            <div className="px-6 py-16 text-center">
+            <div className="flex min-h-[320px] items-center justify-center px-6">
 
-              <p className="text-gray-500">
-                Belum ada berita.
-              </p>
+              <div className="text-center">
 
-              <Link
-                href="/admin/berita/tambah"
-                className="mt-4 inline-block text-sm font-semibold text-green-700 hover:text-green-900"
-              >
-                + Tambah Berita
-              </Link>
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 text-gray-400">
+                  <Newspaper className="h-7 w-7" />
+                </div>
+
+                <h3 className="mt-5 font-semibold text-gray-900">
+                  Belum ada berita
+                </h3>
+
+                <p className="mt-1 text-sm text-gray-500">
+                  Belum ada berita yang tersimpan dalam sistem.
+                </p>
+
+                <Link
+                  href="/admin/berita/tambah"
+                  className="mt-5 inline-flex items-center gap-2 rounded-lg bg-green-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-800"
+                >
+                  <Plus className="h-4 w-4" />
+                  Tambah Berita
+                </Link>
+
+              </div>
 
             </div>
           )}
@@ -322,6 +503,7 @@ export default function AdminBeritaPage() {
         </div>
 
       </section>
+
     </main>
   );
 }
