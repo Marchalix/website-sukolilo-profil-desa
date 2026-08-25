@@ -1,62 +1,100 @@
 import db from "@/lib/db";
-import { mkdir, writeFile } from "fs/promises";
+import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { uploadToS3, getS3Url, BUCKET_NAME } from "@/lib/s3";
 
+export const runtime = "nodejs";
+
+// =========================
+// CEK STORAGE RAILWAY
+// =========================
+const useS3 =
+  !!process.env.AWS_ENDPOINT_URL &&
+  !!process.env.AWS_ACCESS_KEY_ID &&
+  !!process.env.AWS_SECRET_ACCESS_KEY &&
+  !!process.env.AWS_S3_BUCKET_NAME;
+
+// =========================
+// GET SEMUA BERITA
+// =========================
 export async function GET() {
   try {
     const [rows] = await db.query(
       `SELECT
         id,
         judul,
-        gambar,
+        slug,
         kategori,
-        keterangan,
-        tanggal
-      FROM galeri
+        tanggal,
+        gambar,
+        ringkasan,
+        isi,
+        status
+      FROM berita
       ORDER BY tanggal DESC, id DESC`
+    );
+
+    const berita = await Promise.all(
+      (rows as any[]).map(async (item) => {
+        let gambarUrl = item.gambar;
+
+        if (item.gambar && useS3) {
+          try {
+            gambarUrl = await getS3Url(item.gambar);
+          } catch (error) {
+            console.error(
+              "GAGAL MEMBUAT URL GAMBAR:",
+              item.gambar,
+              error
+            );
+          }
+        } else if (item.gambar) {
+          gambarUrl = `/uploads/berita/${item.gambar}`;
+        }
+
+        return {
+          ...item,
+          gambar: gambarUrl,
+        };
+      })
     );
 
     return Response.json({
       success: true,
-      data: rows,
+      data: berita,
     });
   } catch (error) {
-    console.error(error);
+    console.error("GET BERITA ERROR:", error);
 
     return Response.json(
       {
         success: false,
-        message: "Gagal mengambil data galeri",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Gagal mengambil data berita",
       },
       { status: 500 }
     );
   }
 }
 
+// =========================
+// TAMBAH BERITA
+// =========================
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
 
     const judul = formData.get("judul") as string;
+    const slug = formData.get("slug") as string;
     const kategori = formData.get("kategori") as string;
-    const keterangan = formData.get("keterangan") as string;
     const tanggal = formData.get("tanggal") as string;
+    const ringkasan = formData.get("ringkasan") as string;
+    const isi = formData.get("isi") as string;
+    const status = formData.get("status") as string;
 
     const gambar = formData.get("gambar");
-
-    // =========================
-    // VALIDASI
-    // =========================
-
-    if (!judul || !kategori || !keterangan || !tanggal) {
-      return Response.json(
-        {
-          success: false,
-          message: "Semua data wajib diisi",
-        },
-        { status: 400 }
-      );
-    }
 
     if (!(gambar instanceof File)) {
       return Response.json(
@@ -69,71 +107,94 @@ export async function POST(request: Request) {
     }
 
     // =========================
-    // SIMPAN GAMBAR
+    // SIAPKAN FILE GAMBAR
     // =========================
-
     const bytes = await gambar.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const extension = path.extname(gambar.name);
+    const extension =
+      path.extname(gambar.name).toLowerCase() || ".jpg";
 
-    const namaFile = `${Date.now()}-${gambar.name
-      .replace(/\s+/g, "-")
-      .replace(/[^a-zA-Z0-9.-]/g, "")}`;
-
-    const folderUpload = path.join(
-      process.cwd(),
-      "public",
-      "uploads",
-      "galeri"
-    );
-
-    await mkdir(folderUpload, {
-      recursive: true,
-    });
-
-    const lokasiFile = path.join(
-      folderUpload,
-      namaFile
-    );
-
-    await writeFile(lokasiFile, buffer);
+    const namaFile = `${Date.now()}-${slug}${extension}`;
 
     // =========================
-    // SIMPAN KE DATABASE
+    // UPLOAD KE RAILWAY BUCKET
     // =========================
+    if (useS3) {
+      await uploadToS3(
+        namaFile,
+        buffer,
+        gambar.type || "image/jpeg"
+      );
+    }
 
+    // =========================
+    // FALLBACK UNTUK LOCAL
+    // =========================
+    else {
+      const folderUpload = path.join(
+        process.cwd(),
+        "public",
+        "uploads",
+        "berita"
+      );
+
+      await mkdir(folderUpload, {
+        recursive: true,
+      });
+
+      const lokasiFile = path.join(
+        folderUpload,
+        namaFile
+      );
+
+      await writeFile(lokasiFile, buffer);
+    }
+
+    // =========================
+    // SIMPAN DATA KE DATABASE
+    // =========================
     await db.query(
-      `INSERT INTO galeri
+      `INSERT INTO berita
       (
         judul,
-        gambar,
+        slug,
         kategori,
-        keterangan,
-        tanggal
+        tanggal,
+        gambar,
+        ringkasan,
+        isi,
+        status
       )
-      VALUES (?, ?, ?, ?, ?)`,
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         judul,
-        namaFile,
+        slug,
         kategori,
-        keterangan,
         tanggal,
+        namaFile,
+        ringkasan,
+        isi,
+        status,
       ]
     );
 
     return Response.json({
       success: true,
-      message: "Galeri berhasil ditambahkan",
+      message: useS3
+        ? "Berita berhasil ditambahkan dan gambar disimpan ke Storage."
+        : "Berita berhasil ditambahkan.",
     });
-
   } catch (error) {
-    console.error(error);
+    console.error("POST BERITA ERROR:", error);
 
     return Response.json(
       {
         success: false,
-        message: "Gagal menambahkan galeri",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Gagal menambahkan berita",
       },
       { status: 500 }
     );

@@ -1,6 +1,15 @@
-import db from "@/lib/db";
+﻿import db from "@/lib/db";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { uploadToS3, getS3Url } from "@/lib/s3";
+
+export const runtime = "nodejs";
+
+const useS3 =
+  !!process.env.AWS_ENDPOINT_URL &&
+  !!process.env.AWS_ACCESS_KEY_ID &&
+  !!process.env.AWS_SECRET_ACCESS_KEY &&
+  !!process.env.AWS_S3_BUCKET_NAME;
 
 // =========================
 // GET SEMUA BERITA
@@ -22,9 +31,30 @@ export async function GET() {
       ORDER BY tanggal DESC, id DESC`
     );
 
+    const berita = await Promise.all(
+      (rows as any[]).map(async (item) => {
+        let gambarUrl = item.gambar;
+
+        if (item.gambar && useS3) {
+          try {
+            gambarUrl = await getS3Url(item.gambar);
+          } catch (error) {
+            console.error("GAGAL MEMBUAT URL GAMBAR:", error);
+          }
+        } else if (item.gambar) {
+          gambarUrl = `/uploads/berita/${item.gambar}`;
+        }
+
+        return {
+          ...item,
+          gambar: gambarUrl,
+        };
+      })
+    );
+
     return Response.json({
       success: true,
-      data: rows,
+      data: berita,
     });
   } catch (error) {
     console.error("GET BERITA ERROR:", error);
@@ -69,36 +99,51 @@ export async function POST(request: Request) {
       );
     }
 
-    // =========================
-    // SIMPAN FILE GAMBAR
-    // =========================
-
     const bytes = await gambar.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const extension = path.extname(gambar.name);
+    const extension =
+      path.extname(gambar.name).toLowerCase() || ".jpg";
+
     const namaFile = `${Date.now()}-${slug}${extension}`;
 
-    const folderUpload = path.join(
-      process.cwd(),
-      "public",
-      "uploads",
-      "berita"
-    );
+    // =========================
+    // SIMPAN KE STORAGE BUCKET
+    // =========================
+    if (useS3) {
+      await uploadToS3(
+        namaFile,
+        buffer,
+        gambar.type || "image/jpeg"
+      );
+    }
 
-    await mkdir(folderUpload, { recursive: true });
+    // =========================
+    // FALLBACK LOCAL
+    // =========================
+    else {
+      const folderUpload = path.join(
+        process.cwd(),
+        "public",
+        "uploads",
+        "berita"
+      );
 
-    const lokasiFile = path.join(
-      folderUpload,
-      namaFile
-    );
+      await mkdir(folderUpload, {
+        recursive: true,
+      });
 
-    await writeFile(lokasiFile, buffer);
+      const lokasiFile = path.join(
+        folderUpload,
+        namaFile
+      );
+
+      await writeFile(lokasiFile, buffer);
+    }
 
     // =========================
     // SIMPAN DATA KE DATABASE
     // =========================
-
     await db.query(
       `INSERT INTO berita
       (
@@ -126,7 +171,9 @@ export async function POST(request: Request) {
 
     return Response.json({
       success: true,
-      message: "Berita berhasil ditambahkan",
+      message: useS3
+        ? "Berita berhasil ditambahkan dan gambar disimpan ke Storage."
+        : "Berita berhasil ditambahkan.",
     });
   } catch (error) {
     console.error("POST BERITA ERROR:", error);

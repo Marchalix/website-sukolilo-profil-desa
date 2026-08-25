@@ -2,6 +2,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import BeritaList from "./berita-list";
 import db from "@/lib/db";
+import { getS3Url } from "@/lib/s3";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -37,6 +38,27 @@ export default async function BeritaPage() {
 
   const berita = rows as Berita[];
 
+  const beritaDenganUrl = await Promise.all(
+  berita.map(async (item) => {
+    if (
+      process.env.AWS_ENDPOINT_URL &&
+      process.env.AWS_ACCESS_KEY_ID &&
+      process.env.AWS_SECRET_ACCESS_KEY &&
+      process.env.AWS_S3_BUCKET_NAME
+    ) {
+      return {
+        ...item,
+        gambar: await getS3Url(item.gambar),
+      };
+    }
+
+    return {
+      ...item,
+      gambar: `/uploads/berita/${item.gambar}`,
+    };
+  })
+);
+
   return (
     <main>
       <Navbar />
@@ -67,8 +89,7 @@ export default async function BeritaPage() {
           </div>
         </div>
       </section>
-
-      <BeritaList berita={berita} />
+  <BeritaList berita={beritaDenganUrl} />
 
       <Footer />
     </main>

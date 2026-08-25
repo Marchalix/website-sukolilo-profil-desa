@@ -89,11 +89,11 @@ export default function BeritaList({ berita }: Props) {
               className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition hover:-translate-y-1 hover:shadow-md"
             >
               {/* Gambar */}
-              <img
-                src={`/uploads/berita/${item.gambar}`}
-                alt={item.judul}
-                className="h-56 w-full object-cover"
-              />
+                <img
+                  src={item.gambar}
+                  alt={item.judul}
+                  className="h-56 w-full object-cover"
+                />
 
               {/* Isi Card */}
               <div className="p-7">

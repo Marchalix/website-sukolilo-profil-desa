@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1117.0",
+    "@aws-sdk/s3-request-presigner": "^3.1117.0",
     "lucide-react": "^1.33.0",
     "mysql2": "^3.23.4",
     "next": "16.3.1",
