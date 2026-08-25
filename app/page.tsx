@@ -1,6 +1,7 @@
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import db from "@/lib/db";
+import { getS3Url } from "@/lib/s3";
 
 type Potensi = {
   id: number;
@@ -351,7 +352,7 @@ const kontak = (kontakRows as Kontak[])[0];
                   {/* GAMBAR */}
                   {item.gambar ? (
                     <img
-                      src={`/uploads/berita/${item.gambar}`}
+                      src={item.gambar}
                       alt={item.judul}
                       className="h-52 w-full object-cover"
                     />

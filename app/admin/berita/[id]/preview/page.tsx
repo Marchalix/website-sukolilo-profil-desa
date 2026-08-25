@@ -2,6 +2,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import db from "@/lib/db";
 import { notFound } from "next/navigation";
+import { getS3Url } from "@/lib/s3";
 
 type Berita = {
   id: number;
@@ -48,6 +49,20 @@ export default async function PreviewBeritaPage({ params }: Props) {
   if (!berita) {
     notFound();
   }
+if (!berita) {
+  notFound();
+}
+
+const gambarUrl =
+  berita.gambar &&
+  process.env.AWS_ENDPOINT_URL &&
+  process.env.AWS_ACCESS_KEY_ID &&
+  process.env.AWS_SECRET_ACCESS_KEY &&
+  process.env.AWS_S3_BUCKET_NAME
+    ? await getS3Url(berita.gambar)
+    : berita.gambar
+      ? `/uploads/berita/${berita.gambar}`
+      : "/images/gapura-sukolilo.jpg";
 
   return (
     <main className="min-h-screen bg-white">
@@ -111,11 +126,9 @@ export default async function PreviewBeritaPage({ params }: Props) {
       {/* HERO BERITA */}
       <section
         className="relative flex min-h-[420px] items-center bg-cover bg-center"
-        style={{
-          backgroundImage: berita.gambar
-            ? `url('/uploads/berita/${berita.gambar}')`
-            : "url('/images/gapura-sukolilo.jpg')",
-        }}
+          style={{
+            backgroundImage: `url('${gambarUrl}')`,
+          }}
       >
         <div className="absolute inset-0 bg-green-950/65" />
 
