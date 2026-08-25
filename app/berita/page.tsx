@@ -32,6 +32,13 @@ export default async function BeritaPage() {
     ORDER BY tanggal DESC`
   );
 
+  const [profilRows] = await db.query(
+  "SELECT logo FROM profil LIMIT 1"
+);
+
+const logo =
+  (profilRows as { logo: string | null }[])[0]?.logo ?? null;
+
   const berita = rows as Berita[];
 
   return (

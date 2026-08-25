@@ -41,6 +41,17 @@ export default function AdminProfilPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  // =========================
+  // LOGO
+  // =========================
+  const [logo, setLogo] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState("");
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+
+  // =========================
+  // AMBIL DATA PROFIL
+  // =========================
   useEffect(() => {
     const ambilProfil = async () => {
       try {
@@ -69,6 +80,9 @@ export default function AdminProfilPage() {
             nama_kepala_desa:
               data.data.nama_kepala_desa || "",
           });
+
+          setLogo(data.data.logo || "");
+          setLogoPreview(data.data.logo || "");
         }
       } catch (err) {
         setError(
@@ -84,6 +98,9 @@ export default function AdminProfilPage() {
     ambilProfil();
   }, []);
 
+  // =========================
+  // HANDLE INPUT
+  // =========================
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement
@@ -97,6 +114,72 @@ export default function AdminProfilPage() {
     }));
   };
 
+  // =========================
+  // PILIH LOGO
+  // =========================
+  const handleLogoChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    setLogoFile(file);
+
+    const previewUrl = URL.createObjectURL(file);
+    setLogoPreview(previewUrl);
+  };
+
+  // =========================
+  // UPLOAD LOGO
+  // =========================
+  const handleUploadLogo = async () => {
+    if (!logoFile) {
+      setError("Pilih logo terlebih dahulu.");
+      return;
+    }
+
+    setUploadingLogo(true);
+    setMessage("");
+    setError("");
+
+    try {
+      const formData = new FormData();
+
+      formData.append("logo", logoFile);
+
+      const response = await fetch("/api/logo", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.message || "Gagal mengupload logo"
+        );
+      }
+
+      setLogo(data.data.logo);
+      setLogoPreview(data.data.logo);
+      setLogoFile(null);
+
+      setMessage("Logo berhasil diperbarui.");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Gagal mengupload logo"
+      );
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  // =========================
+  // SIMPAN PROFIL
+  // =========================
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
@@ -135,12 +218,16 @@ export default function AdminProfilPage() {
     }
   };
 
+  // =========================
+  // LOADING
+  // =========================
   if (loading) {
     return (
       <main className="min-h-screen bg-[#f7f8f6]">
         <div className="flex min-h-screen items-center justify-center">
           <div className="text-center">
             <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-green-700" />
+
             <p className="mt-4 text-sm text-gray-500">
               Memuat data profil...
             </p>
@@ -153,16 +240,31 @@ export default function AdminProfilPage() {
   return (
     <main className="min-h-screen bg-[#f7f8f6]">
 
-      {/* HEADER */}
+      {/* ==================== HEADER ==================== */}
       <header className="sticky top-0 z-40 border-b border-gray-200/80 bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
 
+          {/* BRAND */}
           <div className="flex items-center gap-3">
 
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-700 text-sm font-bold text-white shadow-sm">
-              DS
+            {/* LOGO DESA */}
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-gray-200">
+
+              {logo ? (
+                <img
+                  src={logo}
+                  alt="Logo Desa Sukolilo"
+                  className="h-full w-full object-contain p-1"
+                />
+              ) : (
+                <span className="text-xs font-bold text-green-700">
+                  DS
+                </span>
+              )}
+
             </div>
 
+            {/* TEXT BRAND */}
             <div>
               <p className="text-sm font-bold text-gray-900">
                 Desa Sukolilo
@@ -175,6 +277,7 @@ export default function AdminProfilPage() {
 
           </div>
 
+          {/* PREVIEW */}
           <Link
             href="/"
             target="_blank"
@@ -186,9 +289,10 @@ export default function AdminProfilPage() {
         </div>
       </header>
 
-      {/* CONTENT */}
+      {/* ==================== CONTENT ==================== */}
       <section className="mx-auto max-w-5xl px-6 py-8 lg:px-8">
 
+        {/* BREADCRUMB */}
         <Link
           href="/admin"
           className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-green-700"
@@ -215,13 +319,13 @@ export default function AdminProfilPage() {
 
         </div>
 
-        {/* FORM */}
+        {/* ==================== FORM ==================== */}
         <form
           onSubmit={handleSubmit}
           className="mt-7 space-y-6"
         >
 
-          {/* MESSAGE */}
+          {/* ==================== MESSAGE ==================== */}
           {message && (
             <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
               <CheckCircle2 className="h-5 w-5 shrink-0" />
@@ -235,10 +339,83 @@ export default function AdminProfilPage() {
             </div>
           )}
 
-          {/* INFORMASI UTAMA */}
+          {/* ==================== LOGO DESA ==================== */}
+          <div className="mb-8 border-b border-gray-100 pb-8">
+
+            <h2 className="text-lg font-semibold text-gray-900">
+              Logo Desa
+            </h2>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Gunakan logo resmi Desa Sukolilo. Format JPG, PNG, atau
+              WEBP, maksimal 2 MB.
+            </p>
+
+            <div className="mt-5 flex flex-col gap-6 sm:flex-row sm:items-center">
+
+              {/* PREVIEW LOGO */}
+              <div className="flex h-40 w-40 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50">
+
+                {logoPreview ? (
+                  <img
+                    src={logoPreview}
+                    alt="Logo Desa Sukolilo"
+                    className="h-full w-full object-contain p-1"
+                  />
+                ) : (
+                  <div className="text-center text-xs text-gray-400">
+                    Belum ada logo
+                  </div>
+                )}
+
+              </div>
+
+              {/* PILIH & SIMPAN */}
+              <div>
+
+                <label
+                  htmlFor="logo"
+                  className="inline-flex cursor-pointer items-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-green-700 hover:text-green-700"
+                >
+                  Pilih Logo
+                </label>
+
+                <input
+                  id="logo"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={handleLogoChange}
+                  className="hidden"
+                />
+
+                {logoFile && (
+                  <p className="mt-2 text-sm text-gray-500">
+                    {logoFile.name}
+                  </p>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleUploadLogo}
+                  disabled={!logoFile || uploadingLogo}
+                  className="mt-3 block rounded-lg bg-green-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {uploadingLogo
+                    ? "Mengupload..."
+                    : "Simpan Logo"}
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* ==================== INFORMASI UTAMA ==================== */}
           <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
 
             <div className="border-b border-gray-100 px-6 py-5">
+
               <div className="flex items-center gap-3">
 
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-700">
@@ -256,6 +433,7 @@ export default function AdminProfilPage() {
                 </div>
 
               </div>
+
             </div>
 
             <div className="space-y-6 p-6">
@@ -344,7 +522,7 @@ export default function AdminProfilPage() {
 
           </div>
 
-          {/* DATA KEPENDUDUKAN */}
+          {/* ==================== DATA KEPENDUDUKAN ==================== */}
           <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
 
             <div className="border-b border-gray-100 px-6 py-5">
@@ -371,6 +549,7 @@ export default function AdminProfilPage() {
 
             <div className="grid gap-5 p-6 sm:grid-cols-2">
 
+              {/* PENDUDUK */}
               <div>
                 <label
                   htmlFor="jumlah_penduduk"
@@ -390,6 +569,7 @@ export default function AdminProfilPage() {
                 />
               </div>
 
+              {/* KK */}
               <div>
                 <label
                   htmlFor="jumlah_kk"
@@ -409,6 +589,7 @@ export default function AdminProfilPage() {
                 />
               </div>
 
+              {/* RT */}
               <div>
                 <label
                   htmlFor="jumlah_rt"
@@ -428,6 +609,7 @@ export default function AdminProfilPage() {
                 />
               </div>
 
+              {/* RW */}
               <div>
                 <label
                   htmlFor="jumlah_rw"
@@ -451,7 +633,7 @@ export default function AdminProfilPage() {
 
           </div>
 
-          {/* BUTTON */}
+          {/* ==================== BUTTON ==================== */}
           <div className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
 
             <Link

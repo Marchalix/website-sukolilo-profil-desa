@@ -24,17 +24,24 @@ type Potensi = {
 };
 
 export default async function AdminPotensiPage() {
-  const [rows] = await db.query(
+    const [rows] = await db.query(
     `SELECT
-      id,
-      nama,
-      kategori,
-      deskripsi,
-      gambar,
-      urutan
+        id,
+        nama,
+        kategori,
+        deskripsi,
+        gambar,
+        urutan
     FROM potensi
     ORDER BY urutan ASC, id ASC`
-  );
+    );
+
+    const [profilRows] = await db.query(
+    "SELECT logo FROM profil LIMIT 1"
+    );
+
+    const logo =
+    (profilRows as { logo: string | null }[])[0]?.logo ?? null;
 
   const potensi = rows as Potensi[];
 
@@ -47,8 +54,18 @@ export default async function AdminPotensiPage() {
 
           <div className="flex items-center gap-3">
 
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-700 text-sm font-bold text-white shadow-sm">
-              DS
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-gray-200">
+            {logo ? (
+                <img
+                src={logo}
+                alt="Logo Desa Sukolilo"
+                className="h-full w-full object-contain p-1"
+                />
+            ) : (
+                <span className="text-xs font-bold text-green-700">
+                DS
+                </span>
+            )}
             </div>
 
             <div>

@@ -12,14 +12,16 @@ export async function GET() {
         jumlah_kk,
         jumlah_rt,
         jumlah_rw,
-        nama_kepala_desa
+        nama_kepala_desa,
+        logo
       FROM profil
       LIMIT 1`
     );
 
-    const data = Array.isArray(rows) && rows.length > 0
-      ? rows[0]
-      : null;
+    const data =
+      Array.isArray(rows) && rows.length > 0
+        ? rows[0]
+        : null;
 
     return Response.json({
       success: true,
@@ -65,6 +67,11 @@ export async function PUT(request: Request) {
     const nama_kepala_desa =
       body.nama_kepala_desa ?? "";
 
+    const logo =
+    body.logo !== undefined
+        ? body.logo
+        : null;
+
     // =========================
     // CEK PROFIL
     // =========================
@@ -82,29 +89,29 @@ export async function PUT(request: Request) {
     if (data.length > 0) {
       const id = data[0].id;
 
-      await db.query(
+        await db.query(
         `UPDATE profil SET
-          sejarah = ?,
-          visi = ?,
-          misi = ?,
-          jumlah_penduduk = ?,
-          jumlah_kk = ?,
-          jumlah_rt = ?,
-          jumlah_rw = ?,
-          nama_kepala_desa = ?
+            sejarah = ?,
+            visi = ?,
+            misi = ?,
+            jumlah_penduduk = ?,
+            jumlah_kk = ?,
+            jumlah_rt = ?,
+            jumlah_rw = ?,
+            nama_kepala_desa = ?
         WHERE id = ?`,
         [
-          sejarah,
-          visi,
-          misi,
-          jumlah_penduduk,
-          jumlah_kk,
-          jumlah_rt,
-          jumlah_rw,
-          nama_kepala_desa,
-          id,
+            sejarah,
+            visi,
+            misi,
+            jumlah_penduduk,
+            jumlah_kk,
+            jumlah_rt,
+            jumlah_rw,
+            nama_kepala_desa,
+            id,
         ]
-      );
+        );
     }
 
     // =========================
@@ -121,9 +128,10 @@ export async function PUT(request: Request) {
           jumlah_kk,
           jumlah_rt,
           jumlah_rw,
-          nama_kepala_desa
+          nama_kepala_desa,
+          logo
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           sejarah,
           visi,
@@ -133,6 +141,7 @@ export async function PUT(request: Request) {
           jumlah_rt,
           jumlah_rw,
           nama_kepala_desa,
+          logo,
         ]
       );
     }

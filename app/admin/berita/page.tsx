@@ -27,36 +27,54 @@ type Berita = {
 export default function AdminBeritaPage() {
   const router = useRouter();
 
-  const [berita, setBerita] = useState<Berita[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+    const [berita, setBerita] = useState<Berita[]>([]);
+    const [logo, setLogo] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [deletingId, setDeletingId] = useState<number | null>(null); 
 
   // =========================
   // AMBIL DATA BERITA
   // =========================
-  useEffect(() => {
-    const ambilBerita = async () => {
-      try {
-        const response = await fetch("/api/berita");
-
+    useEffect(() => {
+    const ambilLogo = async () => {
+        try {
+        const response = await fetch("/api/profil");
         const data = await response.json();
 
-        if (!response.ok) {
-          throw new Error(
-            data.message || "Gagal mengambil data berita"
-          );
+        if (response.ok && data.data?.logo) {
+            setLogo(data.data.logo);
         }
-
-        setBerita(data.data || []);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
+        } catch (error) {
+        console.error("Gagal mengambil logo:", error);
+        }
     };
 
-    ambilBerita();
-  }, []);
+    ambilLogo();
+    }, []);
+
+    useEffect(() => {
+  const ambilBerita = async () => {
+    try {
+      const response = await fetch("/api/berita");
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Gagal mengambil data berita"
+        );
+      }
+
+      setBerita(data.data || []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  ambilBerita();
+}, []);
 
   // =========================
   // HAPUS BERITA
@@ -113,8 +131,18 @@ export default function AdminBeritaPage() {
 
           <div className="flex items-center gap-3">
 
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-700 text-sm font-bold text-white shadow-sm">
-              DS
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-gray-200">
+            {logo ? (
+                <img
+                src={logo}
+                alt="Logo Desa Sukolilo"
+                className="h-full w-full object-contain p-1"
+                />
+            ) : (
+                <span className="text-xs font-bold text-green-700">
+                DS
+                </span>
+            )}
             </div>
 
             <div>

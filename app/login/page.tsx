@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  FormEvent,
-  Suspense,
-  useState,
-} from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Eye,
@@ -193,6 +189,28 @@ function LoginFallback() {
 }
 
 export default function LoginPage() {
+  const [logo, setLogo] = useState("");
+
+  // =========================
+  // AMBIL LOGO DARI DATABASE
+  // =========================
+  useEffect(() => {
+    const ambilLogo = async () => {
+      try {
+        const response = await fetch("/api/profil");
+        const data = await response.json();
+
+        if (response.ok && data.data?.logo) {
+          setLogo(data.data.logo);
+        }
+      } catch (error) {
+        console.error("Gagal mengambil logo:", error);
+      }
+    };
+
+    ambilLogo();
+  }, []);
+
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#f5f7f4] px-6">
 
@@ -206,8 +224,20 @@ export default function LoginPage() {
         {/* BRAND */}
         <div className="mb-8 text-center">
 
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-green-700 text-xl font-bold text-white shadow-lg shadow-green-900/10">
-            DS
+          <div className="mx-auto flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-white shadow-lg shadow-gray-900/10 ring-1 ring-gray-200">
+
+            {logo ? (
+              <img
+                src={logo}
+                alt="Logo Desa Sukolilo"
+                className="h-full w-full object-contain p-1.5"
+              />
+            ) : (
+              <span className="text-sm font-bold text-green-700">
+                DS
+              </span>
+            )}
+
           </div>
 
           <p className="mt-5 text-xs font-bold uppercase tracking-[0.2em] text-green-700">

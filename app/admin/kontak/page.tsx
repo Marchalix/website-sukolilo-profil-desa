@@ -39,50 +39,66 @@ export default function AdminKontakPage() {
   const [error, setError] = useState("");
 
   // =========================
-  // AMBIL DATA KONTAK
+  // LOGO
+  // =========================
+  const [logo, setLogo] = useState("");
+
+  // =========================
+  // AMBIL DATA KONTAK + LOGO
   // =========================
   useEffect(() => {
-    const ambilKontak = async () => {
+    const ambilData = async () => {
       try {
-        const response = await fetch("/api/kontak");
+        // Ambil kontak
+        const responseKontak = await fetch("/api/kontak");
+        const dataKontak = await responseKontak.json();
 
-        const data = await response.json();
-
-        if (!response.ok) {
+        if (!responseKontak.ok) {
           throw new Error(
-            data.message || "Gagal mengambil data kontak"
+            dataKontak.message || "Gagal mengambil data kontak"
           );
         }
 
-        if (data.data) {
+        if (dataKontak.data) {
           setForm({
-            alamat: data.data.alamat || "",
-            telepon: data.data.telepon || "",
-            email: data.data.email || "",
+            alamat: dataKontak.data.alamat || "",
+            telepon: dataKontak.data.telepon || "",
+            email: dataKontak.data.email || "",
             jam_pelayanan:
-              data.data.jam_pelayanan || "",
+              dataKontak.data.jam_pelayanan || "",
             latitude:
-              data.data.latitude !== null
-                ? Number(data.data.latitude)
+              dataKontak.data.latitude !== null
+                ? Number(dataKontak.data.latitude)
                 : null,
             longitude:
-              data.data.longitude !== null
-                ? Number(data.data.longitude)
+              dataKontak.data.longitude !== null
+                ? Number(dataKontak.data.longitude)
                 : null,
           });
+        }
+
+        // Ambil logo
+        const responseProfil = await fetch("/api/profil");
+        const dataProfil = await responseProfil.json();
+
+        if (
+          responseProfil.ok &&
+          dataProfil.data?.logo
+        ) {
+          setLogo(dataProfil.data.logo);
         }
       } catch (err) {
         setError(
           err instanceof Error
             ? err.message
-            : "Gagal mengambil data kontak"
+            : "Gagal mengambil data"
         );
       } finally {
         setLoading(false);
       }
     };
 
-    ambilKontak();
+    ambilData();
   }, []);
 
   // =========================
@@ -178,8 +194,19 @@ export default function AdminKontakPage() {
 
           <div className="flex items-center gap-3">
 
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-700 text-sm font-bold text-white shadow-sm">
-              DS
+            {/* LOGO DESA */}
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-gray-200">
+              {logo ? (
+                <img
+                  src={logo}
+                  alt="Logo Desa Sukolilo"
+                  className="h-full w-full object-contain p-1"
+                />
+              ) : (
+                <span className="text-xs font-bold text-green-700">
+                  DS
+                </span>
+              )}
             </div>
 
             <div>
