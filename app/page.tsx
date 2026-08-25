@@ -91,6 +91,27 @@ export default async function Home() {
 
   const berita = beritaRows as Berita[];
 
+  const beritaDenganUrl = await Promise.all(
+  berita.map(async (item) => {
+    if (
+      process.env.AWS_ENDPOINT_URL &&
+      process.env.AWS_ACCESS_KEY_ID &&
+      process.env.AWS_SECRET_ACCESS_KEY &&
+      process.env.AWS_S3_BUCKET_NAME
+    ) {
+      return {
+        ...item,
+        gambar: await getS3Url(item.gambar),
+      };
+    }
+
+    return {
+      ...item,
+      gambar: `/uploads/berita/${item.gambar}`,
+    };
+  })
+);
+
   // =========================
   // AMBIL DATA PROGRAM
   // =========================
@@ -343,7 +364,7 @@ const kontak = (kontakRows as Kontak[])[0];
           {berita.length > 0 ? (
             <div className="mt-10 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
 
-              {berita.map((item) => (
+            {beritaDenganUrl.map((item) => (
                 <article
                   key={item.id}
                   className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition hover:-translate-y-1 hover:shadow-md"
