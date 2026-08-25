@@ -3,6 +3,8 @@ import Footer from "@/components/footer";
 import BeritaList from "./berita-list";
 import db from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 type Berita = {
   id: number;
   judul: string;
@@ -31,13 +33,6 @@ export default async function BeritaPage() {
     WHERE status = 'published'
     ORDER BY tanggal DESC`
   );
-
-  const [profilRows] = await db.query(
-  "SELECT logo FROM profil LIMIT 1"
-);
-
-const logo =
-  (profilRows as { logo: string | null }[])[0]?.logo ?? null;
 
   const berita = rows as Berita[];
 

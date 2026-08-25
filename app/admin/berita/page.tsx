@@ -15,6 +15,8 @@ import {
   Trash2,
 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 type Berita = {
   id: number;
   judul: string;

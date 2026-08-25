@@ -2,6 +2,8 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import db from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 type Potensi = {
   id: number;
   nama: string;
