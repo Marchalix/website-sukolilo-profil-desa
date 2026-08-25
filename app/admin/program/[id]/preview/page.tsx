@@ -45,6 +45,8 @@ export default async function PreviewProgramPage({ params }: Props) {
     notFound();
   }
 
+  const gambarUrl = program.gambar || null;
+
   return (
     <main className="min-h-screen bg-white">
 
@@ -100,9 +102,9 @@ export default async function PreviewProgramPage({ params }: Props) {
       <section
         className="relative flex min-h-[400px] items-center bg-cover bg-center"
         style={{
-          backgroundImage: program.gambar
-            ? `url('/uploads/program/${program.gambar}')`
-            : "url('/images/gapura-sukolilo.jpg')",
+          backgroundImage: gambarUrl
+          ? `url('${gambarUrl}')`
+          : "url('/images/gapura-sukolilo.jpg')",
         }}
       >
         <div className="absolute inset-0 bg-green-950/60" />

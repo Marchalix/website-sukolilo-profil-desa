@@ -1,6 +1,19 @@
 import db from "@/lib/db";
 import { writeFile, mkdir, unlink } from "fs/promises";
 import path from "path";
+import {
+  uploadToS3,
+  deleteFromS3,
+  getS3Url,
+} from "@/lib/s3";
+
+export const runtime = "nodejs";
+
+const useS3 =
+  !!process.env.AWS_ENDPOINT_URL &&
+  !!process.env.AWS_ACCESS_KEY_ID &&
+  !!process.env.AWS_SECRET_ACCESS_KEY &&
+  !!process.env.AWS_S3_BUCKET_NAME;
 
 type Params = {
   params: Promise<{
@@ -46,10 +59,25 @@ export async function GET(
       );
     }
 
-    return Response.json({
-      success: true,
-      data: program,
-    });
+      let gambarUrl = program.gambar;
+
+      if (program.gambar && useS3) {
+        try {
+          gambarUrl = await getS3Url(program.gambar);
+        } catch (error) {
+          console.error("GAGAL MEMBUAT URL GAMBAR PROGRAM:", error);
+        }
+      } else if (program.gambar) {
+        gambarUrl = `/uploads/program/${program.gambar}`;
+      }
+
+      return Response.json({
+        success: true,
+        data: {
+          ...program,
+          gambar: gambarUrl,
+        },
+      });
 
   } catch (error) {
     console.error("GET PROGRAM ERROR:", error);
@@ -156,26 +184,40 @@ export async function PUT(
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "")}${extension}`;
 
-    const folderUpload = path.join(
-      process.cwd(),
-      "public",
-      "uploads",
-      "program"
-    );
+    if (useS3) {
+      await uploadToS3(
+        namaFile,
+        buffer,
+        gambar.type || "image/jpeg"
+      );
 
-    await mkdir(folderUpload, {
-      recursive: true,
-    });
+      if (programLama.gambar) {
+        try {
+          await deleteFromS3(programLama.gambar);
+        } catch (error) {
+          console.error(
+            "GAGAL MENGHAPUS GAMBAR PROGRAM LAMA:",
+            error
+          );
+        }
+      }
+    } else {
+      const folderUpload = path.join(
+        process.cwd(),
+        "public",
+        "uploads",
+        "program"
+      );
 
-    const lokasiFile = path.join(
-      folderUpload,
-      namaFile
-    );
+      await mkdir(folderUpload, {
+        recursive: true,
+      });
 
-    await writeFile(
-      lokasiFile,
-      buffer
-    );
+      await writeFile(
+        path.join(folderUpload, namaFile),
+        buffer
+      );
+    }
 
     // =========================
     // UPDATE DATABASE
@@ -277,8 +319,17 @@ export async function DELETE(
       [id]
     );
 
-    if (program.gambar) {
-
+  if (program.gambar) {
+    if (useS3) {
+      try {
+        await deleteFromS3(program.gambar);
+      } catch (error) {
+        console.error(
+          "GAGAL MENGHAPUS GAMBAR PROGRAM:",
+          error
+        );
+      }
+    } else {
       const lokasiFile = path.join(
         process.cwd(),
         "public",
@@ -293,6 +344,7 @@ export async function DELETE(
         // File gambar tidak ditemukan.
       }
     }
+  }
 
     return Response.json({
       success: true,

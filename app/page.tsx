@@ -155,6 +155,30 @@ export default async function Home() {
 
   const program = programRows as Program[];
 
+  const programDenganUrl = await Promise.all(
+    program.map(async (item) => {
+      if (
+        item.gambar &&
+        process.env.AWS_ENDPOINT_URL &&
+        process.env.AWS_ACCESS_KEY_ID &&
+        process.env.AWS_SECRET_ACCESS_KEY &&
+        process.env.AWS_S3_BUCKET_NAME
+      ) {
+        return {
+          ...item,
+          gambar: await getS3Url(item.gambar),
+        };
+      }
+
+      return {
+        ...item,
+        gambar: item.gambar
+          ? `/uploads/program/${item.gambar}`
+          : null,
+      };
+    })
+  );
+
   // =========================
   // AMBIL DATA GALERI
   // =========================
@@ -507,7 +531,7 @@ const kontak = (kontakRows as Kontak[])[0];
           {program.length > 0 ? (
             <div className="mt-10 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
 
-              {program.map((item) => (
+              {programDenganUrl.map((item) => (
                 <article
                   key={item.id}
                   className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition hover:-translate-y-1 hover:shadow-md"
@@ -516,7 +540,7 @@ const kontak = (kontakRows as Kontak[])[0];
                   {/* GAMBAR */}
                   {item.gambar ? (
                     <img
-                      src={`/uploads/program/${item.gambar}`}
+                      src={item.gambar}
                       alt={item.nama}
                       className="h-52 w-full object-cover"
                     />

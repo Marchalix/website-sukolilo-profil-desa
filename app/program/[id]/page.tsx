@@ -2,6 +2,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import db from "@/lib/db";
 import { notFound } from "next/navigation";
+import { getS3Url } from "@/lib/s3";
 
 type Program = {
   id: number;
@@ -46,6 +47,17 @@ export default async function ProgramDetailPage({ params }: Props) {
     notFound();
   }
 
+  const gambarUrl =
+  program.gambar &&
+  process.env.AWS_ENDPOINT_URL &&
+  process.env.AWS_ACCESS_KEY_ID &&
+  process.env.AWS_SECRET_ACCESS_KEY &&
+  process.env.AWS_S3_BUCKET_NAME
+    ? await getS3Url(program.gambar)
+    : program.gambar
+      ? `/uploads/program/${program.gambar}`
+      : null;
+
   return (
     <main>
       <Navbar />
@@ -54,9 +66,9 @@ export default async function ProgramDetailPage({ params }: Props) {
       <section
         className="relative flex min-h-[420px] items-center bg-cover bg-center"
         style={{
-          backgroundImage: program.gambar
-            ? `url('/uploads/program/${program.gambar}')`
-            : "url('/images/gapura-sukolilo.jpg')",
+          backgroundImage: gambarUrl
+          ? `url('${gambarUrl}')`
+          : "url('/images/gapura-sukolilo.jpg')",
         }}
       >
         <div className="absolute inset-0 bg-green-950/65" />

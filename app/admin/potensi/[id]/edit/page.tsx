@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { getS3Url } from "@/lib/s3";
 
 type Potensi = {
   id: number;

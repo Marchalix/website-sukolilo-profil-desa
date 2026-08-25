@@ -9,6 +9,7 @@ import {
   Plus,
   ClipboardList,
 } from "lucide-react";
+import { getS3Url } from "@/lib/s3";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +48,30 @@ export default async function AdminProgramPage() {
     (profilRows as { logo: string | null }[])[0]?.logo ?? null;
 
   const program = rows as Program[];
+
+    const programDenganUrl = await Promise.all(
+    program.map(async (item) => {
+      if (
+        item.gambar &&
+        process.env.AWS_ENDPOINT_URL &&
+        process.env.AWS_ACCESS_KEY_ID &&
+        process.env.AWS_SECRET_ACCESS_KEY &&
+        process.env.AWS_S3_BUCKET_NAME
+      ) {
+        return {
+          ...item,
+          gambar: await getS3Url(item.gambar),
+        };
+      }
+
+      return {
+        ...item,
+        gambar: item.gambar
+          ? `/uploads/program/${item.gambar}`
+          : null,
+      };
+    })
+  );
 
   return (
     <main className="min-h-screen bg-[#f7f8f6]">
@@ -276,7 +301,7 @@ export default async function AdminProgramPage() {
 
                 <tbody className="divide-y divide-gray-100">
 
-                  {program.map((item) => (
+                  {programDenganUrl.map((item) => (
                     <tr
                       key={item.id}
                       className="group transition hover:bg-gray-50/70"
@@ -291,7 +316,7 @@ export default async function AdminProgramPage() {
 
                             {item.gambar ? (
                               <img
-                                src={`/uploads/program/${item.gambar}`}
+                                src={item.gambar}
                                 alt={item.nama}
                                 className="h-full w-full object-cover"
                               />

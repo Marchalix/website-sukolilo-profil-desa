@@ -332,7 +332,7 @@ export default function EditProgramPage() {
                 </p>
 
                 <img
-                  src={`/uploads/program/${gambarLama}`}
+                  src={gambarLama}
                   alt={form.nama}
                   className="h-40 w-64 rounded-lg object-cover"
                 />
