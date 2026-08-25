@@ -1,4 +1,5 @@
 import db from "@/lib/db";
+import { getS3Url } from "@/lib/s3";
 
 export async function GET() {
   try {
@@ -20,8 +21,27 @@ export async function GET() {
 
     const data =
       Array.isArray(rows) && rows.length > 0
-        ? rows[0]
+        ? rows[0] as any
         : null;
+
+    if (data?.logo) {
+      const useS3 =
+        !!process.env.AWS_ENDPOINT_URL &&
+        !!process.env.AWS_ACCESS_KEY_ID &&
+        !!process.env.AWS_SECRET_ACCESS_KEY &&
+        !!process.env.AWS_S3_BUCKET_NAME;
+
+      if (useS3) {
+        try {
+          data.logo = await getS3Url(data.logo);
+        } catch (error) {
+          console.error(
+            "GAGAL MEMBUAT URL LOGO S3:",
+            error
+          );
+        }
+      }
+    }
 
     return Response.json({
       success: true,
