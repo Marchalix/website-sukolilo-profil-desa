@@ -3,6 +3,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import db from "@/lib/db";
 import { notFound } from "next/navigation";
+import { getS3Url } from "@/lib/s3";
 
 type Galeri = {
   id: number;
@@ -41,6 +42,14 @@ export default async function PreviewGaleriPage({ params }: Props) {
   if (!galeri) {
     notFound();
   }
+
+  const gambarUrl =
+  process.env.AWS_ENDPOINT_URL &&
+  process.env.AWS_ACCESS_KEY_ID &&
+  process.env.AWS_SECRET_ACCESS_KEY &&
+  process.env.AWS_S3_BUCKET_NAME
+    ? await getS3Url(galeri.gambar)
+    : `/uploads/galeri/${galeri.gambar}`;
 
   return (
     <main>
@@ -95,7 +104,7 @@ export default async function PreviewGaleriPage({ params }: Props) {
       <section
         className="relative flex min-h-[420px] items-center bg-cover bg-center"
         style={{
-          backgroundImage: `url('/uploads/galeri/${galeri.gambar}')`,
+          backgroundImage: `url('${gambarUrl}')`,
         }}
       >
 

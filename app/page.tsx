@@ -150,6 +150,27 @@ export default async function Home() {
 
   const galeri = galeriRows as Galeri[];
 
+  const galeriDenganUrl = await Promise.all(
+  galeri.map(async (item) => {
+    if (
+      process.env.AWS_ENDPOINT_URL &&
+      process.env.AWS_ACCESS_KEY_ID &&
+      process.env.AWS_SECRET_ACCESS_KEY &&
+      process.env.AWS_S3_BUCKET_NAME
+    ) {
+      return {
+        ...item,
+        gambar: await getS3Url(item.gambar),
+      };
+    }
+
+    return {
+      ...item,
+      gambar: `/uploads/galeri/${item.gambar}`,
+    };
+  })
+);
+
   // =========================
 // AMBIL DATA KONTAK
 // =========================
@@ -555,14 +576,14 @@ const kontak = (kontakRows as Kontak[])[0];
           {galeri.length > 0 ? (
             <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4">
 
-              {galeri.map((item) => (
+              {galeriDenganUrl.map((item) => (
                 <div
                   key={item.id}
                   className="group overflow-hidden rounded-2xl bg-gray-100"
                 >
 
                   <img
-                    src={`/uploads/galeri/${item.gambar}`}
+                    src={item.gambar}
                     alt={item.judul}
                     className="aspect-square w-full object-cover transition duration-300 group-hover:scale-105"
                   />
