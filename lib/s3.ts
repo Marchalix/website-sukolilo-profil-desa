@@ -2,6 +2,7 @@ import {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
+  DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -16,8 +17,12 @@ const s3 = new S3Client({
   forcePathStyle: true,
 });
 
-export const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME || "";
+export const BUCKET_NAME =
+  process.env.AWS_S3_BUCKET_NAME || "";
 
+// =========================
+// UPLOAD
+// =========================
 export async function uploadToS3(
   key: string,
   body: Buffer,
@@ -33,6 +38,9 @@ export async function uploadToS3(
   );
 }
 
+// =========================
+// GET SIGNED URL
+// =========================
 export async function getS3Url(key: string) {
   return getSignedUrl(
     s3,
@@ -40,6 +48,20 @@ export async function getS3Url(key: string) {
       Bucket: BUCKET_NAME,
       Key: key,
     }),
-    { expiresIn: 60 * 60 }
+    {
+      expiresIn: 60 * 60,
+    }
+  );
+}
+
+// =========================
+// DELETE
+// =========================
+export async function deleteFromS3(key: string) {
+  await s3.send(
+    new DeleteObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key,
+    })
   );
 }

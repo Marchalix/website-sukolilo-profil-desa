@@ -1,6 +1,19 @@
 import db from "@/lib/db";
-import { unlink, writeFile } from "fs/promises";
+import { unlink, writeFile, mkdir } from "fs/promises";
 import path from "path";
+import {
+  uploadToS3,
+  deleteFromS3,
+  getS3Url,
+} from "@/lib/s3";
+
+export const runtime = "nodejs";
+
+const useS3 =
+  !!process.env.AWS_ENDPOINT_URL &&
+  !!process.env.AWS_ACCESS_KEY_ID &&
+  !!process.env.AWS_SECRET_ACCESS_KEY &&
+  !!process.env.AWS_S3_BUCKET_NAME;
 
 type Params = {
   params: Promise<{
@@ -8,6 +21,9 @@ type Params = {
   }>;
 };
 
+// =========================
+// GET GALERI BY ID
+// =========================
 export async function GET(
   request: Request,
   { params }: Params
@@ -40,12 +56,27 @@ export async function GET(
       );
     }
 
+    const galeri = data[0];
+
+    if (galeri.gambar && useS3) {
+      try {
+        galeri.gambar = await getS3Url(galeri.gambar);
+      } catch (error) {
+        console.error(
+          "GAGAL MEMBUAT URL GAMBAR GALERI:",
+          error
+        );
+      }
+    } else if (galeri.gambar) {
+      galeri.gambar = `/uploads/galeri/${galeri.gambar}`;
+    }
+
     return Response.json({
       success: true,
-      data: data[0],
+      data: galeri,
     });
   } catch (error) {
-    console.error(error);
+    console.error("GET GALERI BY ID ERROR:", error);
 
     return Response.json(
       {
@@ -57,6 +88,9 @@ export async function GET(
   }
 }
 
+// =========================
+// UPDATE GALERI
+// =========================
 export async function PUT(
   request: Request,
   { params }: Params
@@ -83,7 +117,9 @@ export async function PUT(
       );
     }
 
-    // Ambil gambar lama
+    // =========================
+    // AMBIL GAMBAR LAMA
+    // =========================
     const [rows] = await db.query(
       "SELECT gambar FROM galeri WHERE id = ?",
       [id]
@@ -103,46 +139,89 @@ export async function PUT(
 
     let namaFile = data[0].gambar;
 
-    // Jika user memilih gambar baru
+    // =========================
+    // JIKA ADA GAMBAR BARU
+    // =========================
     if (gambar instanceof File && gambar.size > 0) {
       const bytes = await gambar.arrayBuffer();
       const buffer = Buffer.from(bytes);
+
+      const extension =
+        path.extname(gambar.name).toLowerCase() || ".jpg";
 
       const namaBaru = `${Date.now()}-${gambar.name
         .replace(/\s+/g, "-")
         .replace(/[^a-zA-Z0-9.-]/g, "")}`;
 
-      const folderUpload = path.join(
-        process.cwd(),
-        "public",
-        "uploads",
-        "galeri"
-      );
-
-      const lokasiFileBaru = path.join(
-        folderUpload,
-        namaBaru
-      );
-
-      await writeFile(lokasiFileBaru, buffer);
-
-      // Hapus gambar lama
-      if (namaFile) {
-        const lokasiFileLama = path.join(
-          folderUpload,
-          namaFile
+      // =========================
+      // STORAGE RAILWAY
+      // =========================
+      if (useS3) {
+        await uploadToS3(
+          namaBaru,
+          buffer,
+          gambar.type || "image/jpeg"
         );
 
-        try {
-          await unlink(lokasiFileLama);
-        } catch {
-          // File lama tidak ditemukan, lanjutkan saja
+        // Hapus gambar lama dari Storage
+        if (namaFile) {
+          try {
+            await deleteFromS3(namaFile);
+          } catch (error) {
+            console.error(
+              "GAGAL MENGHAPUS GAMBAR LAMA DARI STORAGE:",
+              error
+            );
+          }
+        }
+      }
+
+      // =========================
+      // FALLBACK LOCAL
+      // =========================
+      else {
+        const folderUpload = path.join(
+          process.cwd(),
+          "public",
+          "uploads",
+          "galeri"
+        );
+
+        await mkdir(folderUpload, {
+          recursive: true,
+        });
+
+        const lokasiFileBaru = path.join(
+          folderUpload,
+          namaBaru
+        );
+
+        await writeFile(
+          lokasiFileBaru,
+          buffer
+        );
+
+        // Hapus gambar lama
+        if (namaFile) {
+          const lokasiFileLama = path.join(
+            folderUpload,
+            namaFile
+          );
+
+          try {
+            await unlink(lokasiFileLama);
+          } catch {
+            // File lama tidak ditemukan
+          }
         }
       }
 
       namaFile = namaBaru;
     }
 
+    // =========================
+    // UPDATE DATABASE
+    // =========================
     await db.query(
       `UPDATE galeri
        SET
@@ -164,10 +243,12 @@ export async function PUT(
 
     return Response.json({
       success: true,
-      message: "Galeri berhasil diperbarui",
+      message: useS3
+        ? "Galeri berhasil diperbarui dan gambar disimpan ke Storage."
+        : "Galeri berhasil diperbarui.",
     });
   } catch (error) {
-    console.error(error);
+    console.error("UPDATE GALERI ERROR:", error);
 
     return Response.json(
       {
@@ -179,6 +260,9 @@ export async function PUT(
   }
 }
 
+// =========================
+// DELETE GALERI
+// =========================
 export async function DELETE(
   request: Request,
   { params }: Params
@@ -186,7 +270,9 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    // Ambil nama gambar terlebih dahulu
+    // =========================
+    // AMBIL GAMBAR
+    // =========================
     const [rows] = await db.query(
       "SELECT gambar FROM galeri WHERE id = ?",
       [id]
@@ -206,36 +292,50 @@ export async function DELETE(
 
     const namaFile = data[0].gambar;
 
-    // Hapus data dari database
+    // =========================
+    // HAPUS FILE
+    // =========================
+    if (namaFile) {
+      if (useS3) {
+        try {
+          await deleteFromS3(namaFile);
+        } catch (error) {
+          console.error(
+            "GAGAL MENGHAPUS GAMBAR DARI STORAGE:",
+            error
+          );
+        }
+      } else {
+        const lokasiFile = path.join(
+          process.cwd(),
+          "public",
+          "uploads",
+          "galeri",
+          namaFile
+        );
+
+        try {
+          await unlink(lokasiFile);
+        } catch {
+          // File sudah tidak ada
+        }
+      }
+    }
+
+    // =========================
+    // HAPUS DATABASE
+    // =========================
     await db.query(
       "DELETE FROM galeri WHERE id = ?",
       [id]
     );
 
-    // Hapus file gambar
-    if (namaFile) {
-      const lokasiFile = path.join(
-        process.cwd(),
-        "public",
-        "uploads",
-        "galeri",
-        namaFile
-      );
-
-      try {
-        await unlink(lokasiFile);
-      } catch {
-        // Kalau file sudah tidak ada, tetap lanjut
-      }
-    }
-
     return Response.json({
       success: true,
       message: "Galeri berhasil dihapus",
     });
-
   } catch (error) {
-    console.error(error);
+    console.error("DELETE GALERI ERROR:", error);
 
     return Response.json(
       {

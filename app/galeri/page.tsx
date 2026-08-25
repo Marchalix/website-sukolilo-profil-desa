@@ -1,7 +1,7 @@
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import db from "@/lib/db";
-
+import { getS3Url } from "@/lib/s3";
 export const dynamic = "force-dynamic";
 
 type Galeri = {
@@ -27,6 +27,27 @@ export default async function GaleriPage() {
   );
 
   const galeri = rows as Galeri[];
+
+  const galeriDenganUrl = await Promise.all(
+  galeri.map(async (item) => {
+    if (
+      process.env.AWS_ENDPOINT_URL &&
+      process.env.AWS_ACCESS_KEY_ID &&
+      process.env.AWS_SECRET_ACCESS_KEY &&
+      process.env.AWS_S3_BUCKET_NAME
+    ) {
+      return {
+        ...item,
+        gambar: await getS3Url(item.gambar),
+      };
+    }
+
+    return {
+      ...item,
+      gambar: `/uploads/galeri/${item.gambar}`,
+    };
+  })
+);
 
   return (
     <main>
@@ -85,7 +106,7 @@ export default async function GaleriPage() {
           {galeri.length > 0 ? (
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 
-              {galeri.map((item) => (
+              {galeriDenganUrl.map((item) => (
                 <article
                   key={item.id}
                   className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition hover:-translate-y-1 hover:shadow-md"
@@ -94,8 +115,8 @@ export default async function GaleriPage() {
                   {/* GAMBAR */}
                   <div className="overflow-hidden">
 
-                    <img
-                      src={`/uploads/galeri/${item.gambar}`}
+                  <img
+                    src={item.gambar}
                       alt={item.judul}
                       className="h-64 w-full object-cover transition duration-300 group-hover:scale-105"
                     />
