@@ -1,6 +1,15 @@
 import db from "@/lib/db";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { uploadToS3 } from "@/lib/s3";
+
+export const runtime = "nodejs";
+
+const useS3 =
+  !!process.env.AWS_ENDPOINT_URL &&
+  !!process.env.AWS_ACCESS_KEY_ID &&
+  !!process.env.AWS_SECRET_ACCESS_KEY &&
+  !!process.env.AWS_S3_BUCKET_NAME;
 
 export async function GET() {
   try {
@@ -82,7 +91,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Kalau melebihi jumlah data, taruh di paling bawah
     if (urutan > maxUrutan + 1) {
       urutan = maxUrutan + 1;
     }
@@ -105,7 +113,8 @@ export async function POST(request: Request) {
     let namaFile: string | null = null;
 
     if (gambar instanceof File && gambar.size > 0) {
-      const extension = path.extname(gambar.name);
+      const extension =
+        path.extname(gambar.name).toLowerCase() || ".jpg";
 
       const namaAman = nama
         .toLowerCase()
@@ -116,24 +125,32 @@ export async function POST(request: Request) {
 
       namaFile = `${Date.now()}-${namaAman}${extension}`;
 
-      const folderUpload = path.join(
-        process.cwd(),
-        "public",
-        "uploads",
-        "potensi"
-      );
-
-      await mkdir(folderUpload, {
-        recursive: true,
-      });
-
       const bytes = await gambar.arrayBuffer();
       const buffer = Buffer.from(bytes);
 
-      await writeFile(
-        path.join(folderUpload, namaFile),
-        buffer
-      );
+      if (useS3) {
+        await uploadToS3(
+          namaFile,
+          buffer,
+          gambar.type || "image/jpeg"
+        );
+      } else {
+        const folderUpload = path.join(
+          process.cwd(),
+          "public",
+          "uploads",
+          "potensi"
+        );
+
+        await mkdir(folderUpload, {
+          recursive: true,
+        });
+
+        await writeFile(
+          path.join(folderUpload, namaFile),
+          buffer
+        );
+      }
     }
 
     // =========================
@@ -155,7 +172,9 @@ export async function POST(request: Request) {
 
     return Response.json({
       success: true,
-      message: "Potensi berhasil ditambahkan",
+      message: useS3
+        ? "Potensi berhasil ditambahkan dan gambar disimpan ke Storage."
+        : "Potensi berhasil ditambahkan.",
     });
 
   } catch (error) {

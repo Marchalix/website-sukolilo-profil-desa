@@ -3,6 +3,8 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import db from "@/lib/db";
 import HapusPotensi from "./hapus-potensi";
+import { getS3Url } from "@/lib/s3";
+
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -44,6 +46,30 @@ export default async function AdminPotensiPage() {
     (profilRows as { logo: string | null }[])[0]?.logo ?? null;
 
   const potensi = rows as Potensi[];
+
+  const potensiDenganUrl = await Promise.all(
+  potensi.map(async (item) => {
+    if (
+      item.gambar &&
+      process.env.AWS_ENDPOINT_URL &&
+      process.env.AWS_ACCESS_KEY_ID &&
+      process.env.AWS_SECRET_ACCESS_KEY &&
+      process.env.AWS_S3_BUCKET_NAME
+    ) {
+      return {
+        ...item,
+        gambar: await getS3Url(item.gambar),
+      };
+    }
+
+    return {
+      ...item,
+      gambar: item.gambar
+        ? `/uploads/potensi/${item.gambar}`
+        : null,
+    };
+  })
+);
 
   return (
     <main className="min-h-screen bg-[#f7f8f6]">
@@ -270,7 +296,7 @@ export default async function AdminPotensiPage() {
 
                 <tbody className="divide-y divide-gray-100">
 
-                  {potensi.map((item) => (
+                  {potensiDenganUrl.map((item) => (
                     <tr
                       key={item.id}
                       className="group transition hover:bg-gray-50/70"
@@ -285,7 +311,7 @@ export default async function AdminPotensiPage() {
 
                             {item.gambar ? (
                               <img
-                                src={`/uploads/potensi/${item.gambar}`}
+                                src={item.gambar}
                                 alt={item.nama}
                                 className="h-full w-full object-cover"
                               />

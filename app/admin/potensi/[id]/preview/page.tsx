@@ -1,6 +1,7 @@
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import db from "@/lib/db";
+import { getS3Url } from "@/lib/s3";
 import { notFound } from "next/navigation";
 
 type Potensi = {
@@ -42,6 +43,17 @@ export default async function PreviewPotensiPage({ params }: Props) {
   if (!potensi) {
     notFound();
   }
+
+  const gambarUrl =
+  potensi.gambar &&
+  process.env.AWS_ENDPOINT_URL &&
+  process.env.AWS_ACCESS_KEY_ID &&
+  process.env.AWS_SECRET_ACCESS_KEY &&
+  process.env.AWS_S3_BUCKET_NAME
+    ? await getS3Url(potensi.gambar)
+    : potensi.gambar
+      ? `/uploads/potensi/${potensi.gambar}`
+      : null;
 
   return (
     <main className="min-h-screen bg-white">
@@ -98,8 +110,8 @@ export default async function PreviewPotensiPage({ params }: Props) {
       <section
         className="relative flex min-h-[400px] items-center bg-cover bg-center"
         style={{
-          backgroundImage: potensi.gambar
-            ? `url('/uploads/potensi/${potensi.gambar}')`
+          backgroundImage: gambarUrl
+            ? `url('${gambarUrl}')`
             : "url('/images/gapura-sukolilo.jpg')",
         }}
       >
@@ -132,13 +144,13 @@ export default async function PreviewPotensiPage({ params }: Props) {
 
             {/* ==================== GAMBAR ==================== */}
             <div className="overflow-hidden rounded-3xl">
-                {potensi.gambar ? (
+              {gambarUrl ? (
                 <img
-                    src={`/uploads/potensi/${potensi.gambar}`}
-                    alt={potensi.nama}
-                    className="h-[350px] w-full object-cover"
+                  src={gambarUrl}
+                  alt={potensi.nama}
+                  className="h-[350px] w-full object-cover"
                 />
-                ) : (
+              ) : (
                 <div className="flex h-[350px] items-center justify-center rounded-3xl bg-gray-100">
                     <p className="text-sm text-gray-400">
                     Belum ada gambar

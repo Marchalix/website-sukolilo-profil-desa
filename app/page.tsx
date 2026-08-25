@@ -70,6 +70,30 @@ export default async function Home() {
 
   const potensi = potensiRows as Potensi[];
 
+  const potensiDenganUrl = await Promise.all(
+  potensi.map(async (item) => {
+    if (
+      item.gambar &&
+      process.env.AWS_ENDPOINT_URL &&
+      process.env.AWS_ACCESS_KEY_ID &&
+      process.env.AWS_SECRET_ACCESS_KEY &&
+      process.env.AWS_S3_BUCKET_NAME
+    ) {
+      return {
+        ...item,
+        gambar: await getS3Url(item.gambar),
+      };
+    }
+
+    return {
+      ...item,
+      gambar: item.gambar
+        ? `/uploads/potensi/${item.gambar}`
+        : null,
+    };
+  })
+);
+
   // =========================
   // AMBIL DATA BERITA
   // =========================
@@ -293,7 +317,7 @@ const kontak = (kontakRows as Kontak[])[0];
           {potensi.length > 0 ? (
             <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
 
-              {potensi.map((item) => (
+              {potensiDenganUrl.map((item) => (
                 <div
                   key={item.id}
                   className="overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
@@ -301,7 +325,7 @@ const kontak = (kontakRows as Kontak[])[0];
 
                   {item.gambar ? (
                     <img
-                      src={`/uploads/potensi/${item.gambar}`}
+                    src={item.gambar}
                       alt={item.nama}
                       className="h-40 w-full object-cover"
                     />

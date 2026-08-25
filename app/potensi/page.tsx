@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import db from "@/lib/db";
+import { getS3Url } from "@/lib/s3";
 
 type Potensi = {
   id: number;
@@ -27,6 +28,30 @@ export default async function PotensiPage() {
   );
 
   const potensi = rows as Potensi[];
+
+  const potensiDenganUrl = await Promise.all(
+  potensi.map(async (item) => {
+    if (
+      item.gambar &&
+      process.env.AWS_ENDPOINT_URL &&
+      process.env.AWS_ACCESS_KEY_ID &&
+      process.env.AWS_SECRET_ACCESS_KEY &&
+      process.env.AWS_S3_BUCKET_NAME
+    ) {
+      return {
+        ...item,
+        gambar: await getS3Url(item.gambar),
+      };
+    }
+
+    return {
+      ...item,
+      gambar: item.gambar
+        ? `/uploads/potensi/${item.gambar}`
+        : null,
+    };
+  })
+);
 
   return (
     <main>
@@ -92,7 +117,7 @@ export default async function PotensiPage() {
           {potensi.length > 0 ? (
             <div className="space-y-16">
 
-              {potensi.map((item, index) => (
+              {potensiDenganUrl.map((item, index) => (
                 <article
                   key={item.id}
                   className="grid items-center gap-10 lg:grid-cols-2"
@@ -110,7 +135,7 @@ export default async function PotensiPage() {
 
                       {item.gambar ? (
                         <img
-                          src={`/uploads/potensi/${item.gambar}`}
+                          src={item.gambar}
                           alt={item.nama}
                           className="h-[350px] w-full object-cover"
                         />

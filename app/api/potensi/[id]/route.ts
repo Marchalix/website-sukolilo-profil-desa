@@ -1,6 +1,15 @@
 import db from "@/lib/db";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { uploadToS3, deleteFromS3, getS3Url } from "@/lib/s3";
+
+export const runtime = "nodejs";
+
+const useS3 =
+  !!process.env.AWS_ENDPOINT_URL &&
+  !!process.env.AWS_ACCESS_KEY_ID &&
+  !!process.env.AWS_SECRET_ACCESS_KEY &&
+  !!process.env.AWS_S3_BUCKET_NAME;
 
 type Params = {
   params: Promise<{
@@ -45,10 +54,31 @@ export async function GET(
       );
     }
 
-    return Response.json({
-      success: true,
-      data,
-    });
+let gambarUrl = data.gambar;
+
+  if (
+    data.gambar &&
+    useS3
+  ) {
+    try {
+      gambarUrl = await getS3Url(data.gambar);
+    } catch (error) {
+      console.error(
+        "GAGAL MEMBUAT URL GAMBAR POTENSI:",
+        error
+      );
+    }
+  } else if (data.gambar) {
+    gambarUrl = `/uploads/potensi/${data.gambar}`;
+  }
+
+  return Response.json({
+    success: true,
+    data: {
+      ...data,
+      gambar: gambarUrl,
+    },
+  });
 
   } catch (error) {
     console.error(error);
@@ -217,7 +247,8 @@ export async function PUT(
     let namaFile = dataLama.gambar;
 
     if (gambar instanceof File && gambar.size > 0) {
-      const extension = path.extname(gambar.name);
+      const extension =
+        path.extname(gambar.name).toLowerCase() || ".jpg";
 
       const namaAman = nama
         .toLowerCase()
@@ -228,24 +259,45 @@ export async function PUT(
 
       namaFile = `${Date.now()}-${namaAman}${extension}`;
 
-      const folderUpload = path.join(
-        process.cwd(),
-        "public",
-        "uploads",
-        "potensi"
-      );
-
-      await mkdir(folderUpload, {
-        recursive: true,
-      });
-
       const bytes = await gambar.arrayBuffer();
       const buffer = Buffer.from(bytes);
 
-      await writeFile(
-        path.join(folderUpload, namaFile),
-        buffer
-      );
+      // Upload gambar baru
+      if (useS3) {
+        await uploadToS3(
+          namaFile,
+          buffer,
+          gambar.type || "image/jpeg"
+        );
+
+        // Hapus gambar lama dari Storage
+        if (dataLama.gambar) {
+          try {
+            await deleteFromS3(dataLama.gambar);
+          } catch (error) {
+            console.error(
+              "GAGAL MENGHAPUS GAMBAR POTENSI LAMA:",
+              error
+            );
+          }
+        }
+      } else {
+        const folderUpload = path.join(
+          process.cwd(),
+          "public",
+          "uploads",
+          "potensi"
+        );
+
+        await mkdir(folderUpload, {
+          recursive: true,
+        });
+
+        await writeFile(
+          path.join(folderUpload, namaFile),
+          buffer
+        );
+      }
     }
 
     // =========================
@@ -302,10 +354,10 @@ export async function DELETE(
 
     // Ambil urutan data yang akan dihapus
     const [rows] = await db.query(
-      `SELECT urutan
-       FROM potensi
-       WHERE id = ?
-       LIMIT 1`,
+      `SELECT urutan, gambar
+      FROM potensi
+      WHERE id = ?
+      LIMIT 1`,
       [id]
     );
 
@@ -322,12 +374,19 @@ export async function DELETE(
     }
 
     const urutanDihapus = data.urutan;
+    const gambarDihapus = data.gambar;
 
-    // Hapus data
-    await db.query(
-      "DELETE FROM potensi WHERE id = ?",
-      [id]
-    );
+    // Hapus gambar dari Storage
+    if (useS3 && gambarDihapus) {
+      try {
+        await deleteFromS3(gambarDihapus);
+      } catch (error) {
+        console.error(
+          "GAGAL MENGHAPUS GAMBAR POTENSI:",
+          error
+        );
+      }
+    }
 
     // Rapikan urutan setelah data dihapus
     if (urutanDihapus !== null) {
