@@ -1,12 +1,19 @@
 import db from "@/lib/db";
-import { writeFile, mkdir } from "fs/promises";
+import { writeFile, mkdir, unlink } from "fs/promises";
 import path from "path";
+import { uploadToS3, deleteFromS3, getS3Url } from "@/lib/s3";
 
 type Params = {
   params: Promise<{
     id: string;
   }>;
 };
+
+const useS3 =
+  !!process.env.AWS_ENDPOINT_URL &&
+  !!process.env.AWS_ACCESS_KEY_ID &&
+  !!process.env.AWS_SECRET_ACCESS_KEY &&
+  !!process.env.AWS_S3_BUCKET_NAME;
 
 // =========================
 // GET 1 BERITA
@@ -36,6 +43,12 @@ export async function GET(
     );
 
     const data = rows as any[];
+
+    if (data.length > 0 && data[0].gambar && useS3) {
+      data[0].gambar = await getS3Url(data[0].gambar);
+    } else if (data.length > 0 && data[0].gambar) {
+      data[0].gambar = `/uploads/berita/${data[0].gambar}`;
+    }
 
     if (data.length === 0) {
       return Response.json(
@@ -115,15 +128,30 @@ export async function PUT(
     // =========================
     // JIKA ADA GAMBAR BARU
     // =========================
+if (gambar instanceof File && gambar.size > 0) {
+  const bytes = await gambar.arrayBuffer();
+  const buffer = Buffer.from(bytes);
 
-    if (gambar instanceof File && gambar.size > 0) {
-      const bytes = await gambar.arrayBuffer();
-      const buffer = Buffer.from(bytes);
+  const extension =
+    path.extname(gambar.name).toLowerCase() || ".jpg";
 
-      const extension = path.extname(gambar.name);
+  namaFile = `${Date.now()}-${slug}${extension}`;
 
-      namaFile = `${Date.now()}-${slug}${extension}`;
+  if (useS3) {
+    await uploadToS3(
+      namaFile,
+      buffer,
+      gambar.type || "image/jpeg"
+    );
 
+    if (dataLama[0].gambar) {
+        try {
+          await deleteFromS3(dataLama[0].gambar);
+        } catch (error) {
+          console.error("GAGAL HAPUS GAMBAR LAMA:", error);
+        }
+      }
+    } else {
       const folderUpload = path.join(
         process.cwd(),
         "public",
@@ -131,15 +159,29 @@ export async function PUT(
         "berita"
       );
 
-      await mkdir(folderUpload, { recursive: true });
+      await mkdir(folderUpload, {
+        recursive: true,
+      });
 
-      const lokasiFile = path.join(
-        folderUpload,
-        namaFile
+      await writeFile(
+        path.join(folderUpload, namaFile),
+        buffer
       );
 
-      await writeFile(lokasiFile, buffer);
+      if (dataLama[0].gambar) {
+        try {
+          await unlink(
+            path.join(
+              folderUpload,
+              dataLama[0].gambar
+            )
+          );
+        } catch {
+          // File lama tidak ditemukan.
+        }
+      }
     }
+  }
 
     // =========================
     // UPDATE DATABASE
@@ -200,10 +242,54 @@ export async function DELETE(
   try {
     const { id } = await params;
 
+    const [rows] = await db.query(
+      "SELECT gambar FROM berita WHERE id = ? LIMIT 1",
+      [id]
+    );
+
+    const berita = (rows as any[])[0];
+
+    if (!berita) {
+      return Response.json(
+        {
+          success: false,
+          message: "Berita tidak ditemukan",
+        },
+        { status: 404 }
+      );
+    }
+
     await db.query(
       "DELETE FROM berita WHERE id = ?",
       [id]
     );
+
+    if (berita.gambar) {
+      if (useS3) {
+        try {
+          await deleteFromS3(berita.gambar);
+        } catch (error) {
+          console.error(
+            "GAGAL HAPUS GAMBAR S3:",
+            error
+          );
+        }
+      } else {
+        try {
+          await unlink(
+            path.join(
+              process.cwd(),
+              "public",
+              "uploads",
+              "berita",
+              berita.gambar
+            )
+          );
+        } catch {
+          // File tidak ditemukan.
+        }
+      }
+    }
 
     return Response.json({
       success: true,

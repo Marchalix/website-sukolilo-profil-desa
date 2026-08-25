@@ -49,9 +49,6 @@ export default async function PreviewBeritaPage({ params }: Props) {
   if (!berita) {
     notFound();
   }
-if (!berita) {
-  notFound();
-}
 
 const gambarUrl =
   berita.gambar &&
