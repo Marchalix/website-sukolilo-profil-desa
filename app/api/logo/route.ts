@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import db from "@/lib/db";
+import { uploadToS3 } from "@/lib/s3";
+
+const useS3 =
+  !!process.env.AWS_ENDPOINT_URL &&
+  !!process.env.AWS_ACCESS_KEY_ID &&
+  !!process.env.AWS_SECRET_ACCESS_KEY &&
+  !!process.env.AWS_S3_BUCKET_NAME;
 
 export async function POST(request: Request) {
   console.log("=== API LOGO TERPANGGIL ===");
@@ -73,40 +78,43 @@ export async function POST(request: Request) {
 
     const fileName = `logo-desa-${Date.now()}${extension}`;
 
-    // =========================
-    // FOLDER PENYIMPANAN
-    // =========================
-
-    const uploadDir = path.join(
-      process.cwd(),
-      "public",
-      "uploads",
-      "logo"
-    );
-
-    await mkdir(uploadDir, {
-      recursive: true,
-    });
-
-    // =========================
-    // SIMPAN FILE
-    // =========================
-
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const filePath = path.join(
-      uploadDir,
-      fileName
-    );
+    if (useS3) {
+      await uploadToS3(
+        fileName,
+        buffer,
+        file.type
+      );
+    } else {
+      const { writeFile, mkdir } = await import("fs/promises");
+      const path = await import("path");
 
-    await writeFile(filePath, buffer);
+      const uploadDir = path.join(
+        process.cwd(),
+        "public",
+        "uploads",
+        "logo"
+      );
+
+      await mkdir(uploadDir, {
+        recursive: true,
+      });
+
+      await writeFile(
+        path.join(uploadDir, fileName),
+        buffer
+      );
+    }
 
     // =========================
     // PATH UNTUK WEBSITE
     // =========================
 
-    const logoPath = `/uploads/logo/${fileName}`;
+    const logoPath = useS3
+      ? fileName
+      : `/uploads/logo/${fileName}`;
 
     // =========================
     // SIMPAN KE DATABASE
