@@ -47,10 +47,9 @@ export async function getS3Url(key: string) {
     new GetObjectCommand({
       Bucket: BUCKET_NAME,
       Key: key,
+      ChecksumMode: undefined,
     }),
-    {
-      expiresIn: 60 * 60,
-    }
+    { expiresIn: 60 * 60 }
   );
 }
 
