@@ -1,6 +1,8 @@
 import HapusGaleri from "./hapus-galeri";
 import Link from "next/link";
 import db from "@/lib/db";
+import { getS3Url } from "@/lib/s3";
+
 import {
   ArrowLeft,
   CalendarDays,
@@ -43,6 +45,27 @@ export default async function AdminGaleriPage() {
     (profilRows as { logo: string | null }[])[0]?.logo ?? null;
 
   const galeri = rows as Galeri[];
+
+  const galeriDenganUrl = await Promise.all(
+  galeri.map(async (item) => {
+    if (
+      process.env.AWS_ENDPOINT_URL &&
+      process.env.AWS_ACCESS_KEY_ID &&
+      process.env.AWS_SECRET_ACCESS_KEY &&
+      process.env.AWS_S3_BUCKET_NAME
+    ) {
+      return {
+        ...item,
+        gambar: await getS3Url(item.gambar),
+      };
+    }
+
+    return {
+      ...item,
+      gambar: `/uploads/galeri/${item.gambar}`,
+    };
+  })
+);
 
   return (
     <main className="min-h-screen bg-[#f7f8f6]">
@@ -274,7 +297,7 @@ export default async function AdminGaleriPage() {
 
                 <tbody className="divide-y divide-gray-100">
 
-                  {galeri.map((item) => (
+                  {galeriDenganUrl.map((item) => (
                     <tr
                       key={item.id}
                       className="group transition hover:bg-gray-50/70"
@@ -288,7 +311,7 @@ export default async function AdminGaleriPage() {
                           <div className="h-12 w-16 shrink-0 overflow-hidden rounded-xl bg-gray-100">
 
                             <img
-                              src={`/uploads/galeri/${item.gambar}`}
+                            src={item.gambar}
                               alt={item.judul}
                               className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                             />
