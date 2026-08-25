@@ -2,6 +2,8 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import db from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 type Galeri = {
   id: number;
   judul: string;
@@ -10,8 +12,6 @@ type Galeri = {
   keterangan: string;
   tanggal: string;
 };
-
-export const dynamic = "force-dynamic";
 
 export default async function GaleriPage() {
   const [rows] = await db.query(
