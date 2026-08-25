@@ -1,5 +1,5 @@
 import db from "@/lib/db";
-import { writeFile, mkdir } from "fs/promises";
+import { writeFile, mkdir, unlink } from "fs/promises";
 import path from "path";
 import { uploadToS3, deleteFromS3, getS3Url } from "@/lib/s3";
 
@@ -298,6 +298,16 @@ export async function PUT(
           path.join(folderUpload, namaFile),
           buffer
         );
+
+        if (dataLama.gambar) {
+          try {
+            await unlink(
+              path.join(folderUpload, dataLama.gambar)
+            );
+          } catch {
+            // File lama tidak ditemukan
+          }
+        }
       }
     }
 
@@ -377,15 +387,31 @@ export async function DELETE(
     const urutanDihapus = data.urutan;
     const gambarDihapus = data.gambar;
 
-    // Hapus gambar dari Storage
-    if (useS3 && gambarDihapus) {
-      try {
-        await deleteFromS3(gambarDihapus);
-      } catch (error) {
-        console.error(
-          "GAGAL MENGHAPUS GAMBAR POTENSI:",
-          error
-        );
+// Hapus gambar dari Storage
+    if (gambarDihapus) {
+      if (useS3) {
+        try {
+          await deleteFromS3(gambarDihapus);
+        } catch (error) {
+          console.error(
+            "GAGAL MENGHAPUS GAMBAR POTENSI DARI S3:",
+            error
+          );
+        }
+      } else {
+        try {
+          await unlink(
+            path.join(
+              process.cwd(),
+              "public",
+              "uploads",
+              "potensi",
+              gambarDihapus
+            )
+          );
+        } catch {
+          // File tidak ditemukan
+        }
       }
     }
 
@@ -398,6 +424,11 @@ export async function DELETE(
         [urutanDihapus]
       );
     }
+
+    await db.query(
+      "DELETE FROM potensi WHERE id = ?",
+      [id]
+    );
 
     return Response.json({
       success: true,

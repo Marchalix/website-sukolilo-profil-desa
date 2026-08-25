@@ -148,7 +148,7 @@ export default async function PreviewGaleriPage({ params }: Props) {
           <div className="overflow-hidden rounded-2xl">
 
             <img
-              src={`/uploads/galeri/${galeri.gambar}`}
+              src={gambarUrl}
               alt={galeri.judul}
               className="max-h-[650px] w-full object-cover"
             />

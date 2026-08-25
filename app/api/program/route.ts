@@ -1,7 +1,7 @@
 import db from "@/lib/db";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
-import { uploadToS3 } from "@/lib/s3";
+import { uploadToS3, getS3Url } from "@/lib/s3";
 
 export const runtime = "nodejs";
 
@@ -26,12 +26,37 @@ export async function GET() {
       ORDER BY urutan ASC, id ASC`
     );
 
+    const program = await Promise.all(
+      (rows as any[]).map(async (item) => {
+        let gambarUrl = item.gambar;
+
+        if (item.gambar && useS3) {
+          try {
+            gambarUrl = await getS3Url(item.gambar);
+          } catch (error) {
+            console.error(
+              "GAGAL MEMBUAT URL GAMBAR PROGRAM:",
+              item.gambar,
+              error
+            );
+          }
+        } else if (item.gambar) {
+          gambarUrl = `/uploads/program/${item.gambar}`;
+        }
+
+        return {
+          ...item,
+          gambar: gambarUrl,
+        };
+      })
+    );
+
     return Response.json({
       success: true,
-      data: rows,
+      data: program,
     });
   } catch (error) {
-    console.error(error);
+    console.error("GET PROGRAM ERROR:", error);
 
     return Response.json(
       {

@@ -217,6 +217,20 @@ export async function PUT(
         path.join(folderUpload, namaFile),
         buffer
       );
+
+      // Hapus gambar lama dari local storage
+      if (programLama.gambar) {
+        try {
+          await unlink(
+            path.join(
+              folderUpload,
+              programLama.gambar
+            )
+          );
+        } catch {
+          // File lama tidak ditemukan.
+        }
+      }
     }
 
     // =========================
@@ -243,27 +257,6 @@ export async function PUT(
         id,
       ]
     );
-
-    // =========================
-    // HAPUS GAMBAR LAMA
-    // =========================
-
-    if (programLama.gambar) {
-
-      const gambarLama = path.join(
-        process.cwd(),
-        "public",
-        "uploads",
-        "program",
-        programLama.gambar
-      );
-
-      try {
-        await unlink(gambarLama);
-      } catch {
-        // File lama tidak ditemukan.
-      }
-    }
 
     return Response.json({
       success: true,

@@ -237,7 +237,7 @@ export default function EditGaleriPage() {
 
               <div className="mt-3">
                 <img
-                  src={`/uploads/galeri/${data.gambar}`}
+                  src={data.gambar}
                   alt={data.judul}
                   className="h-48 w-72 rounded-xl object-cover"
                 />
