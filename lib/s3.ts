@@ -23,6 +23,7 @@ export const BUCKET_NAME =
 // =========================
 // UPLOAD
 // =========================
+
 export async function uploadToS3(
   key: string,
   body: Buffer,
@@ -41,9 +42,13 @@ export async function uploadToS3(
 // =========================
 // GET SIGNED URL
 // =========================
+
 export async function getS3Url(key: string) {
   const normalizedKey = key
-    .replace(/^\/?uploads\/(berita|galeri|potensi|program|logo)\//, "")
+    .replace(
+      /^\/?uploads\/(berita|galeri|potensi|program|logo)\//,
+      ""
+    )
     .replace(/^\/?uploads\//, "");
 
   return getSignedUrl(
@@ -59,6 +64,7 @@ export async function getS3Url(key: string) {
 // =========================
 // DELETE
 // =========================
+
 export async function deleteFromS3(key: string) {
   await s3.send(
     new DeleteObjectCommand({
