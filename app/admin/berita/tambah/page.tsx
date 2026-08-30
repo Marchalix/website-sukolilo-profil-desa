@@ -54,11 +54,32 @@ export default function TambahBeritaPage() {
     }));
   };
 
-  const handleGambarChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0] || null;
-    setGambar(file);
+const handleGambarChange = (
+  e: React.ChangeEvent<HTMLInputElement>
+) => {
+  const file = e.target.files?.[0] || null;
+
+  if (!file) {
+    setGambar(null);
+    return;
+  }
+
+  // Buat salinan file dengan nama ASCII yang aman
+    const namaAman = file.name
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9._-]/g, "-");
+
+    const fileAman = new File(
+      [file],
+      namaAman,
+      {
+        type: file.type,
+        lastModified: file.lastModified,
+      }
+    );
+
+    setGambar(fileAman);
   };
 
   const handleSubmit = async (
