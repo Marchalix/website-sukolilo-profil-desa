@@ -1,5 +1,6 @@
 import Link from "next/link";
 import db from "@/lib/db";
+import { getS3Url } from "@/lib/s3";
 import LogoutButton from "./logout-button";
 import {
   LayoutDashboard,
@@ -26,11 +27,15 @@ export default async function AdminDashboardPage() {
     ]);
 
     const [profilRows] = await db.query(
-    "SELECT logo FROM profil LIMIT 1"
+      "SELECT logo FROM profil LIMIT 1"
     );
 
-    const logo =
-    (profilRows as { logo: string | null }[])[0]?.logo ?? null;
+    const logoPath =
+      (profilRows as { logo: string | null }[])[0]?.logo ?? null;
+
+    const logo = logoPath
+      ? await getS3Url(logoPath)
+      : null;
 
   const totalBerita = Number(
     (beritaRows[0] as any[])[0]?.total ?? 0
