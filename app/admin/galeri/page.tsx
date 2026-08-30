@@ -41,8 +41,12 @@ export default async function AdminGaleriPage() {
     "SELECT logo FROM profil LIMIT 1"
   );
 
-  const logo =
+  const logoPath =
     (profilRows as { logo: string | null }[])[0]?.logo ?? null;
+
+  const logo = logoPath
+    ? await getS3Url(logoPath)
+    : null;
 
   const galeri = rows as Galeri[];
 
