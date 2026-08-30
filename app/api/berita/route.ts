@@ -77,11 +77,8 @@ export async function GET() {
 // =========================
 export async function POST(request: Request) {
   try {
-    console.log("POST /api/berita - mulai membaca FormData");
 
     const formData = await request.formData();
-
-    console.log("POST /api/berita - FormData berhasil dibaca");
 
     const judul = formData.get("judul") as string;
     const slug = formData.get("slug") as string;
