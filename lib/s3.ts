@@ -42,12 +42,15 @@ export async function uploadToS3(
 // GET SIGNED URL
 // =========================
 export async function getS3Url(key: string) {
+  const normalizedKey = key
+    .replace(/^\/?uploads\/(berita|galeri|potensi|program|logo)\//, "")
+    .replace(/^\/?uploads\//, "");
+
   return getSignedUrl(
     s3,
     new GetObjectCommand({
       Bucket: BUCKET_NAME,
-      Key: key,
-      ChecksumMode: undefined,
+      Key: normalizedKey,
     }),
     { expiresIn: 60 * 60 }
   );
