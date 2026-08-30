@@ -33,9 +33,16 @@ export default async function AdminDashboardPage() {
     const logoPath =
       (profilRows as { logo: string | null }[])[0]?.logo ?? null;
 
-    const logo = logoPath
-      ? await getS3Url(logoPath)
-      : null;
+    let logo = logoPath;
+
+    if (logoPath) {
+      try {
+        logo = await getS3Url(logoPath);
+        console.log("ADMIN LOGO URL:", logo);
+      } catch (error) {
+        console.error("GAGAL GET LOGO:", error);
+      }
+    }
 
   const totalBerita = Number(
     (beritaRows[0] as any[])[0]?.total ?? 0
