@@ -4,6 +4,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import db from "@/lib/db";
 import { getS3Url } from "@/lib/s3";
+import { getGlobalBannerUrl } from "@/lib/banner";
 
 type Potensi = {
   id: number;
@@ -15,6 +16,7 @@ type Potensi = {
 };
 
 export default async function PotensiPage() {
+  const bannerUrl = await getGlobalBannerUrl();
   const [rows] = await db.query(
     `SELECT
       id,
@@ -61,8 +63,8 @@ export default async function PotensiPage() {
       <section
         className="relative flex min-h-[400px] items-center bg-cover bg-center"
         style={{
-          backgroundImage: "url('/images/gapura-sukolilo.jpg')",
-        }}
+            backgroundImage: `url('${bannerUrl}')`,
+          }}
       >
         <div className="absolute inset-0 bg-green-950/60" />
 

@@ -3,6 +3,7 @@ import Footer from "@/components/footer";
 import db from "@/lib/db";
 import { getS3Url } from "@/lib/s3";
 export const dynamic = "force-dynamic";
+import { getGlobalBannerUrl } from "@/lib/banner";
 
 type Galeri = {
   id: number;
@@ -14,6 +15,7 @@ type Galeri = {
 };
 
 export default async function GaleriPage() {
+  const bannerUrl = await getGlobalBannerUrl();
   const [rows] = await db.query(
     `SELECT
       id,
@@ -57,7 +59,7 @@ export default async function GaleriPage() {
       <section
         className="relative flex min-h-[400px] items-center bg-cover bg-center"
         style={{
-          backgroundImage: "url('/images/gapura-sukolilo.jpg')",
+          backgroundImage: `url('${bannerUrl}')`,
         }}
       >
         <div className="absolute inset-0 bg-green-950/60" />

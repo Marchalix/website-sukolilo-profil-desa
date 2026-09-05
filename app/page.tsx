@@ -2,6 +2,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import db from "@/lib/db";
 import { getS3Url } from "@/lib/s3";
+import { getGlobalBannerUrl } from "@/lib/banner";
 
 type Potensi = {
   id: number;
@@ -51,6 +52,7 @@ type Kontak = {
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
+  const bannerUrl = await getGlobalBannerUrl();
   // =========================
   // AMBIL DATA POTENSI
   // =========================
@@ -245,7 +247,7 @@ const kontak = (kontakRows as Kontak[])[0];
       <section
         className="relative flex min-h-[500px] items-center bg-cover bg-center sm:min-h-[560px]"
         style={{
-          backgroundImage: "url('/images/gapura-sukolilo.jpg')",
+          backgroundImage: `url('${bannerUrl}')`,
         }}
       >
         <div className="absolute inset-0 bg-green-950/55" />

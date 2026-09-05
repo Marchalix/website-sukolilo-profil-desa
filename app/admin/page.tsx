@@ -13,6 +13,7 @@ import {
   ArrowUpRight,
   ExternalLink,
   Settings,
+  Image,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -225,6 +226,14 @@ export default async function AdminDashboardPage() {
               <div className="mt-3 space-y-1">
 
                 <Link
+                  href="/admin/banner"
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-green-700"
+                >
+                  <Image className="h-[18px] w-[18px]" />
+                  Banner Website
+                </Link>
+
+                <Link
                   href="/admin/profil"
                   className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-green-700"
                 >
@@ -291,7 +300,7 @@ export default async function AdminDashboardPage() {
           </div>
 
           {/* ==================== STATISTIK ==================== */}
-          <div className="mt-7 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-7 grid gap-5 sm:grid-cols-2 xl:grid-cols-3 xl:grid-cols-4">
 
             {statistik.map((item) => {
               const Icon = item.icon;
@@ -534,6 +543,30 @@ export default async function AdminDashboardPage() {
 
                 <p className="mt-1 text-sm leading-6 text-gray-500">
                   Kelola alamat, kontak pelayanan, dan koordinat lokasi desa.
+                </p>
+
+              </Link>
+
+              <Link
+                href="/admin/banner"
+                className="group rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <div className="flex items-start justify-between">
+
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-100 text-gray-600">
+                    <Image className="h-5 w-5" />
+                  </div>
+
+                  <ArrowUpRight className="h-5 w-5 text-gray-300 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-green-700" />
+
+                </div>
+
+                <h3 className="mt-5 font-semibold text-gray-900">
+                  Banner Website
+                </h3>
+
+                <p className="mt-1 text-sm leading-6 text-gray-500">
+                  Kelola gambar banner yang digunakan pada seluruh halaman website.
                 </p>
 
               </Link>

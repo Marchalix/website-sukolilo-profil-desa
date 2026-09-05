@@ -1,6 +1,7 @@
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import db from "@/lib/db";
+import { getGlobalBannerUrl } from "@/lib/banner";
 
 type Profil = {
   id: number;
@@ -17,6 +18,7 @@ type Profil = {
 export const dynamic = "force-dynamic";
 
 export default async function ProfilPage() {
+  const bannerUrl = await getGlobalBannerUrl();
   const [rows] = await db.query(
     `SELECT
       id,
@@ -43,7 +45,7 @@ export default async function ProfilPage() {
       <section
         className="relative flex min-h-[450px] items-center bg-cover bg-center"
         style={{
-          backgroundImage: "url('/images/gapura-sukolilo.jpg')",
+          backgroundImage: `url('${bannerUrl}')`,
         }}
       >
         <div className="absolute inset-0 bg-green-950/60" />
@@ -72,13 +74,6 @@ export default async function ProfilPage() {
           <div className="grid items-center gap-12 lg:grid-cols-2">
 
             {/* Gambar */}
-            <div className="overflow-hidden rounded-3xl">
-              <img
-                src="/images/gapura-sukolilo.jpg"
-                alt="Desa Sukolilo"
-                className="h-[400px] w-full object-cover"
-              />
-            </div>
 
             {/* Text */}
             <div>
